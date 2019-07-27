@@ -1,0 +1,30 @@
+[submodule "libraries/Adafruit_MAX31865"]
+	path = libraries/Adafruit_MAX31865
+	url = git@github.com:orri93/Adafruit_MAX31865.git
+[submodule "libraries/Adafruit_SSD1306"]
+	path = libraries/Adafruit_SSD1306
+	url = https://github.com/adafruit/Adafruit_SSD1306.git
+[submodule "libraries/Adafruit-GFX-Library"]
+	path = libraries/Adafruit-GFX-Library
+	url = https://github.com/adafruit/Adafruit-GFX-Library.git
+[submodule "libraries/GosDebug"]
+	path = libraries/GosDebug
+	url = git@github.com:orri93/arduinodebug.git
+[submodule "libraries/GosSort"]
+	path = libraries/GosSort
+	url = git@github.com:orri93/arduinosort.git
+[submodule "libraries/GosMedian"]
+	path = libraries/GosMedian
+	url = git@github.com:orri93/arduinomedian.git
+[submodule "libraries/GosDisplay"]
+	path = libraries/GosDisplay
+	url = git@github.com:orri93/arduinodisplay.git
+[submodule "libraries/GosFormat"]
+	path = libraries/GosFormat
+	url = git@github.com:orri93/arduinoformat.git
+[submodule "gos/ArduinoUnitTesting"]
+	path = gos/ArduinoUnitTesting
+	url = git@github.com:orri93/arduinounittesting.git
+[submodule "gos/ArduinoTools"]
+	path = gos/ArduinoTools
+	url = git@github.com:orri93/arduinotools.git
