@@ -28,3 +28,6 @@
 [submodule "gos/ArduinoTools"]
 	path = gos/ArduinoTools
 	url = git@github.com:orri93/arduinotools.git
+[submodule "libraries/U8g2_Arduino"]
+	path = libraries/U8g2_Arduino
+	url = https://github.com/olikraus/U8g2_Arduino.git
