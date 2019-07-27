@@ -31,3 +31,6 @@
 [submodule "libraries/U8g2_Arduino"]
 	path = libraries/U8g2_Arduino
 	url = https://github.com/olikraus/U8g2_Arduino.git
+[submodule "libraries/Arduino-PID-Library"]
+	path = libraries/Arduino-PID-Library
+	url = git@github.com:orri93/Arduino-PID-Library.git
