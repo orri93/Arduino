@@ -22,9 +22,6 @@
 [submodule "libraries/GosFormat"]
 	path = libraries/GosFormat
 	url = git@github.com:orri93/arduinoformat.git
-[submodule "gos/ArduinoUnitTesting"]
-	path = gos/ArduinoUnitTesting
-	url = git@github.com:orri93/arduinounittesting.git
 [submodule "gos/ArduinoTools"]
 	path = gos/ArduinoTools
 	url = git@github.com:orri93/arduinotools.git
@@ -44,3 +41,10 @@
 [submodule "libraries/GosSensor"]
 	path = libraries/GosSensor
 	url = git@github.com:orri93/arduinosensor.git
+[submodule "libraries/PWFusion_MAX31865"]
+	path = libraries/PWFusion_MAX31865
+	url = git@github.com:orri93/PWFusion_MAX31865.git
+  
+[submodule "libraries/GosMax31865"]
+	path = libraries/GosMax31865
+	url = git@github.com:orri93/arduinomax31865.git
