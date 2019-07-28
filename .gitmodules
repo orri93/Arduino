@@ -34,3 +34,13 @@
 [submodule "libraries/Arduino-PID-Library"]
 	path = libraries/Arduino-PID-Library
 	url = git@github.com:orri93/Arduino-PID-Library.git
+
+[submodule "libraries/GosTick"]
+	path = libraries/GosTick
+	url = git@github.com:orri93/arduinotick.git
+[submodule "libraries/ArduinoModbusSlave"]
+	path = libraries/ArduinoModbusSlave
+	url = https://github.com/yaacov/ArduinoModbusSlave.git
+[submodule "libraries/GosSensor"]
+	path = libraries/GosSensor
+	url = git@github.com:orri93/arduinosensor.git
