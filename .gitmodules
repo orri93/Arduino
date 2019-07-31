@@ -48,3 +48,9 @@
 [submodule "libraries/GosMax31865"]
 	path = libraries/GosMax31865
 	url = git@github.com:orri93/arduinomax31865.git
+[submodule "gos/ArduinoTesting"]
+	path = gos/ArduinoTesting
+	url = git@github.com:orri93/arduinotesting.git
+[submodule "libraries/GosMax6675"]
+	path = libraries/GosMax6675
+	url = git@github.com:orri93/arduinomax6675.git
