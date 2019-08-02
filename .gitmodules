@@ -57,3 +57,6 @@
 [submodule "libraries/GosTemplates"]
 	path = libraries/GosTemplates
 	url = git@github.com:orri93/arduinotemplates.git
+[submodule "libraries/GosMcp3208"]
+	path = libraries/GosMcp3208
+	url = git@github.com:orri93/arduinomcp3208.git
