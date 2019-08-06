@@ -60,3 +60,6 @@
 [submodule "libraries/GosMcp3208"]
 	path = libraries/GosMcp3208
 	url = git@github.com:orri93/arduinomcp3208.git
+[submodule "libraries/GosSinLed"]
+	path = libraries/GosSinLed
+	url = git@github.com:orri93/arduinosinled.git
