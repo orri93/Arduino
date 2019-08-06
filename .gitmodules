@@ -63,3 +63,6 @@
 [submodule "libraries/GosSinLed"]
 	path = libraries/GosSinLed
 	url = git@github.com:orri93/arduinosinled.git
+[submodule "libraries/FixedPointsArduino"]
+	path = libraries/FixedPointsArduino
+	url = git@github.com:orri93/FixedPointsArduino.git
