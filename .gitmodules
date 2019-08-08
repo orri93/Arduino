@@ -66,3 +66,6 @@
 [submodule "libraries/FixedPointsArduino"]
 	path = libraries/FixedPointsArduino
 	url = git@github.com:orri93/FixedPointsArduino.git
+[submodule "gos/ArduinoUnitTesting"]
+	path = gos/ArduinoUnitTesting
+	url = git@github.com:orri93/arduinounittesting.git

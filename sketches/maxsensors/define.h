@@ -1,0 +1,6 @@
+#ifndef _GOS_SKETCHES_MAX_SENSORS_DEFINE_H_
+#define _GOS_SKETCHES_MAX_SENSORS_DEFINE_H_
+
+#define NO_DISPLAY
+
+#endif
