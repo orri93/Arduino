@@ -11,17 +11,19 @@
 
 #include "pin.h"
 
-#define INTERVAL_MAX_31865        500
+#define INTERVAL_MAX_31865          500
 
-#define DELAY_SENSOR_SETUP_END    500
+#define DELAY_SENSOR_SETUP_END      500
 
-#define SERIAL_BAUD            115200
+#define SERIAL_BAUD              115200
 
 /* For PT100 set type to 1 and for PT1000 set type to 2 */
-#define MAX_RTD_TYPE  RTD_TYPE_PT1000
+#define MAX_RTD_TYPE    RTD_TYPE_PT1000
 
 // set to 2WIRE or 4WIRE as necessary
-#define MAX_WIRES          RTD_3_WIRE
+#define MAX_WIRES            RTD_3_WIRE
+
+#define TEXT_MAX_SENSORS  "MAX Sensors"
 
 namespace gs = ::gos::sensor;
 
@@ -58,7 +60,7 @@ void setup() {
   while (!Serial) {
     delay(10);
   }
-  Serial.println("MAX Sensors");
+  Serial.println(TEXT_MAX_SENSORS);
 #endif
 
 }

@@ -4,7 +4,7 @@ project(ArduinoSketchesMaxSensorsTests VERSION 1.0
   DESCRIPTION "GOS Arduino Sketches Max Sensors Tests"
   LANGUAGES C CXX ASM)
 
-add_executable(ExecutArduinoSketchesMaxSensorsTests
+add_executable(ExecuteArduinoSketchesMaxSensorsTests
   maxsensors.cpp)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -20,10 +20,10 @@ include_directories(
   "${gos_arduino_unit_testing_sublibraries_dir}/arduinosensor/src"
   "${gos_arduino_unit_testing_sublibraries_dir}/arduinotick/src")
 
-target_link_libraries(ExecutArduinoSketchesMaxSensorsTests
+target_link_libraries(ExecuteArduinoSketchesMaxSensorsTests
   ${gos_arduino_sketches_unit_testing_target_link_libraries}
   libarduinotick
   libarduinosensor
   libarduinomax31865)
 
-add_test(NAME sketches_tests COMMAND ExecutArduinoSketchesMaxSensorsTests)
+add_test(NAME SketchesMaxSensorsTests COMMAND ExecuteArduinoSketchesMaxSensorsTests)

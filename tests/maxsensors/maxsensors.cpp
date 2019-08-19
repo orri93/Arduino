@@ -1,4 +1,5 @@
 #include <mutex>
+#include <string>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -36,6 +37,17 @@ TEST_F(MaxSensorsFixture, Setup) {
     Times(testing::AtLeast(1));
   EXPECT_CALL(*arduinomock, digitalWrite(PIN_MAX_31865_CS, LOW)).
     Times(testing::AtLeast(1));
+  EXPECT_CALL(*spimock, begin).Times(testing::AtLeast(1));
+#ifdef SERIAL_BAUD
+  EXPECT_CALL(*serialmock, begin((uint16_t)SERIAL_BAUD))
+    .Times(testing::AtLeast(1));
+#endif
+  EXPECT_CALL(*serialmock, available)
+    .Times(testing::AtLeast(1))
+    .WillOnce(testing::Return(true));
+  EXPECT_CALL(*serialmock, println(::testing::Matcher<const char*>(
+    ::testing::StrEq(TEXT_MAX_SENSORS))))
+    .Times(testing::AtLeast(1));
 
   setup();
 
@@ -43,4 +55,9 @@ TEST_F(MaxSensorsFixture, Setup) {
 }
 
 TEST_F(MaxSensorsFixture, Loop) {
+  EXPECT_CALL(*arduinomock, millis).
+    Times(testing::Exactly(1)).
+    WillOnce(testing::Return(1));
+  EXPECT_CALL(*arduinomock, digitalWrite(PIN_MAX_31865_CS, LOW)).Times(::testing::AtLeast)
+  loop();
 }

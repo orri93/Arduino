@@ -1,0 +1,10 @@
+{
+  "ExcludedItems" : [
+    ".cmake/",
+    ".git/",
+    "libraries/",
+    "scripts/",
+    "build/",
+    "*.useless_file_ext"
+   ]
+}
