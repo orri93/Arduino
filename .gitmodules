@@ -69,3 +69,12 @@
 [submodule "gos/ArduinoUnitTesting"]
 	path = gos/ArduinoUnitTesting
 	url = git@github.com:orri93/arduinounittesting.git
+[submodule "libraries/Bounce2"]
+	path = libraries/Bounce2
+	url = git@github.com:orri93/Bounce2.git
+[submodule "libraries/AnalogButtons"]
+	path = libraries/AnalogButtons
+	url = git@github.com:orri93/AnalogButtons.git
+[submodule "libraries/AnalogMultiButton"]
+	path = libraries/AnalogMultiButton
+	url = git@github.com:orri93/AnalogMultiButton.git

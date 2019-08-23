@@ -58,6 +58,9 @@ TEST_F(MaxSensorsFixture, Loop) {
   EXPECT_CALL(*arduinomock, millis).
     Times(testing::Exactly(1)).
     WillOnce(testing::Return(1));
-  EXPECT_CALL(*arduinomock, digitalWrite(PIN_MAX_31865_CS, LOW)).Times(::testing::AtLeast)
+  EXPECT_CALL(*arduinomock, digitalWrite(PIN_MAX_31865_CS, LOW)).
+    Times(::testing::AtLeast(1));
+  EXPECT_CALL(*arduinomock, digitalWrite(PIN_MAX_31865_CS, HIGH)).
+    Times(::testing::AtLeast(1));
   loop();
 }

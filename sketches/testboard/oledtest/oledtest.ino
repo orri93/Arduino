@@ -28,7 +28,9 @@ int integer;
 
 enum class Lines {
   One, Two
-} lines = Lines::One;
+};
+
+Lines lines = Lines::One;
 
 void setup() {
   oled.U8g2->begin();
