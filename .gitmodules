@@ -78,3 +78,15 @@
 [submodule "libraries/AnalogMultiButton"]
 	path = libraries/AnalogMultiButton
 	url = git@github.com:orri93/AnalogMultiButton.git
+[submodule "libraries/RS485-Arduino-Library"]
+	path = libraries/RS485-Arduino-Library
+	url = https://github.com/Protoneer/RS485-Arduino-Library.git
+[submodule "libraries/MAX485"]
+	path = libraries/MAX485
+	url = git@github.com:orri93/MAX485.git
+[submodule "libraries/ModbusMaster"]
+	path = libraries/ModbusMaster
+	url = git@github.com:orri93/ModbusMaster.git
+[submodule "libraries/AltSoftSerial"]
+	path = libraries/AltSoftSerial
+	url = git@github.com:orri93/AltSoftSerial.git

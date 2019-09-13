@@ -48,6 +48,8 @@ set(gos_arduino_sketches_unit_testing_target_link_libraries
   libgosutils
   libarduinomock)
 
+set(gtest_force_shared_crt ON CACHE BOOL "Prefer to use Shared CRT for static")
+
 option(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS "Build tests" ON)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -56,6 +58,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_PLATFORM_INDEPENDENT_CODE ON)
 
 #add_subdirectory(gos/ArduinoTesting)
+add_subdirectory(gos/ArduinoTools)
 add_subdirectory(gos/ArduinoUnitTesting)
 
 if(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS)
