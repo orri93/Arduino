@@ -17,9 +17,9 @@ Tick timer(INTERVAL);
 ::gos::atl::buffer::Holder<> idb(TEXT_ID_B, sizeof(TEXT_ID_B));
 ::gos::atl::buffer::Holder<> unit(TEXT_UNIT, sizeof(TEXT_UNIT));
 ::gos::atl::display::Oled<> oled;
-::gos::atl::display::line::One<> oneline(oled);
-::gos::atl::display::line::Two<> twoline(oled);
-::gos::atl::display::Render<>* render = &oneline;
+::gos::atl::display::asynchronous::line::One<> oneline(oled);
+::gos::atl::display::asynchronous::line::Two<> twoline(oled);
+::gos::atl::display::asynchronous::Render<>* render = &oneline;
 
 unsigned long tick;
 

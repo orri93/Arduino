@@ -37,6 +37,10 @@ set(gos_arduino_sketches_unit_testing_mock_include
 set(gos_arduino_sketches_unit_testing_include
   ${gos_arduino_sketches_dir}
   ${gos_arduino_sketches_unit_testing_mock_include}
+  "${gos_arduino_unit_testing_sublibraries_dir}/arduinosinled/src"
+  "${gos_arduino_unit_testing_sublibraries_dir}/arduinotemplates/src"
+  "${gos_arduino_unit_testing_dir}/extern/libraries/FixedPointsArduino/src"
+  "${gos_arduino_unit_testing_dir}/extern/libraries/ArduinoModbusSlave/src"
   "${gos_arduino_unit_testing_dir}/include")
 
 set(gos_arduino_sketches_unit_testing_target_link_libraries
@@ -46,7 +50,9 @@ set(gos_arduino_sketches_unit_testing_target_link_libraries
   libmock
   libavrlibc
   libgosutils
-  libarduinomock)
+  libarduinomock
+  libarduinoextern
+  libarduinosinled)
 
 set(gtest_force_shared_crt ON CACHE BOOL "Prefer to use Shared CRT for static")
 
