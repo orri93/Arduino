@@ -90,3 +90,6 @@
 [submodule "libraries/AltSoftSerial"]
 	path = libraries/AltSoftSerial
 	url = git@github.com:orri93/AltSoftSerial.git
+[submodule "libraries/GosModbus"]
+	path = libraries/GosModbus
+	url = git@github.com:orri93/arduinomodbus.git
