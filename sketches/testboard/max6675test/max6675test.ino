@@ -9,7 +9,7 @@
  */
 
  /* Build Options */
-//#define NO_DISPLAY
+#define NO_DISPLAY
 
 #include <SPI.h>
 

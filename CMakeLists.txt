@@ -27,7 +27,7 @@ set(gos_arduino_unit_testing_sublibraries_dir
   "${CMAKE_CURRENT_SOURCE_DIR}/gos/ArduinoUnitTesting/sublibraries")
 
 set(gos_arduino_sketches_unit_testing_mock_include 
-  "${gos_arduino_unit_testing_dir}/include/avr"
+#  "${gos_arduino_unit_testing_dir}/include/avr"
   "${gos_arduino_unit_testing_dir}/include/mock"
   "${gos_arduino_unit_testing_dir}/extern/arduinomock"
 # "${gos_arduino_unit_testing_dir}/extern/arduinomock/include/arduino-mock"
