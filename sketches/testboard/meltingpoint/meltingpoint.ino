@@ -894,6 +894,13 @@ uint8_t read_holding_registers(
   uint16_t startaddress,
   uint16_t length) {
   gmvt::status = STATUS_ILLEGAL_DATA_ADDRESS;
+  if (gatl::modbus::registers::access(
+    binding::holding::manual,
+    slave,
+    startaddress,
+    length)) {
+    gmvt::status = STATUS_OK;
+  }
   if (gatl::modbus::two::access(
     binding::holding::pid,
     slave,
@@ -1013,12 +1020,16 @@ void initialize() {
   slave.cbVector[CB_WRITE_HOLDING_REGISTERS] = write_holding_registers;
 }
 namespace binding {
+namespace size {
+const uint8_t Output = 1;
+const uint8_t Real = 2;
+}
 void create() {
   gmvt::address = gatl::binding::create<gm::type::Output, uint16_t, uint8_t>(
     binding::holding::manual,
     0,
     binding::count::holding::Manual,
-    sizeof(gm::type::Output) / 2);
+    size::Output);
   gatl::binding::set<gm::type::Output, uint16_t, uint8_t>(
     binding::holding::manual,
     index::holding::Manual,
@@ -1028,7 +1039,7 @@ void create() {
     binding::holding::pid,
     gmvt::address,
     binding::count::holding::Pid,
-    sizeof(gm::type::Real) / 2);
+    size::Real);
   gatl::binding::set< gm::type::Real, uint16_t, uint8_t>(
     binding::holding::pid,
     index::holding::pid::Setpoint,
@@ -1058,7 +1069,7 @@ void create() {
     binding::input::output,
     0,
     binding::count::input::Output,
-    sizeof(gm::type::Output));
+    size::Output);
   gatl::binding::set<gm::type::Output, uint16_t, uint8_t>(
     binding::input::output,
     index::input::Output,
@@ -1068,7 +1079,7 @@ void create() {
     binding::input::sensor,
     gmvt::address,
     binding::count::input::Sensor,
-    sizeof(gm::type::Real));
+    size::Real);
   gatl::binding::set<gm::type::Real, uint16_t, uint8_t>(
     binding::input::sensor,
     index::input::Temperature,
