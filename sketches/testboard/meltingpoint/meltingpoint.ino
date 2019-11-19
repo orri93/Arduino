@@ -492,9 +492,6 @@ void loop() {
 namespace gos {
 namespace meltingpoint {
 namespace mode {
-bool is(const status& state) {
-  return ::gos::meltingpoint::mode::state == state;
-}
 namespace gotom {
 namespace details {
 status next(const status& state) {
@@ -547,6 +544,9 @@ bool apply(const type::Output& value) {
     gm::variables::range::output)) {
     gm::heater::value = static_cast<gm::heater::Type>(value);
     analogWrite(PIN_HEATER, gm::heater::value);
+    return true;
+  } else {
+    return false;
   }
 }
 } /* End of heater name-space */
