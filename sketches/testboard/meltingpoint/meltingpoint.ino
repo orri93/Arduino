@@ -45,7 +45,6 @@ namespace gatlu = ::gos::atl::utility;
 #define PIN_PUSH_BUTTON                     A0
 #define PIN_POTENTIOMETER                   A2
 
-#define INTERVAL_INTERFACE                 250
 #define INTERVAL_CYCLE                    1000
 
 #define DELAY_SENSOR_SETUP_END             500
@@ -65,8 +64,8 @@ namespace gatlu = ::gos::atl::utility;
 #define POTENTIOMETER_RAW_MININUM            0
 #define POTENTIOMETER_RAW_MAXIMUM         1024
 
-#define SETPOINT_MININUM       0
-#define SETPOINT_MAXIMUM     300
+#define SETPOINT_MININUM                     0
+#define SETPOINT_MAXIMUM                   300
 
 #define PID_MINIMUM_OUTPUT                   0
 #define PID_MAXIMUM_OUTPUT                 255
@@ -255,7 +254,9 @@ void line();
 
 namespace timer {
 Tick cycle(INTERVAL_CYCLE);
+#ifdef INTERVAL_INTERFACE
 Tick interfaces(INTERVAL_INTERFACE);
+#endif
 } /* End of timer name-space */
 
 namespace push {
@@ -345,8 +346,8 @@ void read();
 }
 } /* End of eeprom name-space */
 
-}
-}
+} /* End of meltingpoint name-space */
+} /* End of gos name-space */
 
 namespace gm = ::gos::meltingpoint;
 namespace gmp = ::gos::meltingpoint::pid;
@@ -360,7 +361,9 @@ namespace gmvt = ::gos::meltingpoint::variables::temporary;
 
 void setup() {
   gme::binding::create();
+#ifdef MODBUS_BAUD
   gm::modbus::binding::create();
+#endif
   gme::binding::read();
 
   pinMode(PIN_HEATER, OUTPUT);
@@ -395,12 +398,6 @@ void setup() {
     gm::pid::variable,
     gm::pid::parameter,
     gm::pid::tune::k);
-
-  /* Initial read */
-  gm::sensor::read();
-  gm::potentiometer::value = analogRead(PIN_POTENTIOMETER);
-  gm::potentiometer::process(gm::potentiometer::value);
-  gm::display::update::second::line();
 
 #ifdef DELAY_SENSOR_SETUP_END
   delay(DELAY_SENSOR_SETUP_END);
@@ -440,21 +437,25 @@ void loop() {
     break;
   }
 
-  if (gm::timer::interfaces.is(gmv::tick)) {
-    gm::potentiometer::value = analogRead(PIN_POTENTIOMETER);
-    gm::potentiometer::process(gm::potentiometer::value);
-    gm::display::update::second::line();
-    if (gm::mode::state == gm::mode::status::manual) {
-#ifdef NOT_USED
-      if (!gm::heater::apply()) {
-        /* Error handling */
-      }
-#else
-      gm::heater::apply();
+#ifdef MODBUS_BAUD
+  gm::modbus::slave.poll();
 #endif
+
+  gm::potentiometer::value = analogRead(PIN_POTENTIOMETER);
+  gm::potentiometer::process(gm::potentiometer::value);
+
+  if (gm::mode::state == gm::mode::status::manual) {
+#ifdef NOT_USED
+    if (!gm::heater::apply()) {
+      /* Error handling */
     }
+#else
+    gm::heater::apply();
+#endif
   }
+
   if (gm::timer::cycle.is(gmv::tick)) {
+    gm::display::update::second::line();
     gm::sensor::read();
     if (gm::mode::state == gm::mode::status::automatic) {
       gm::variables::output = gatl::pid::compute<gm::type::Real, gm::type::Output>(
@@ -491,7 +492,16 @@ void loop() {
 
 namespace gos {
 namespace meltingpoint {
+
 namespace mode {
+namespace is {
+bool equal(const status& state) {
+  return ::gos::meltingpoint::mode::state == state;
+}
+bool unequal(const status& state) {
+  return ::gos::meltingpoint::mode::state != state;
+}
+}
 namespace gotom {
 namespace details {
 status next(const status& state) {
@@ -532,7 +542,7 @@ void state(const status& state) {
 }
 
 }
-}
+} /* End of mode name-space */
 
 namespace heater {
 bool apply() {
@@ -604,7 +614,7 @@ void td() {
 }
 }
 }
-}
+} /* End of pid name-space */
 
 namespace display {
 namespace update {
@@ -683,7 +693,7 @@ void line() {
 }
 }
 }
-}
+} /* End of display name-space */
 
 namespace potentiometer {
 namespace to {
@@ -713,10 +723,12 @@ void process(const int& value) {
     if (gatlu::changed::apply::is<Type>(
       value,
       last::setpoint,
-      change::sensitivity::ForSetpoint)) {      
+      change::sensitivity::ForSetpoint)) {
       gm::pid::parameter.Setpoint = to::setpoint(value);
+#ifdef MODBUS_BAUD
       gm::modbus::variables::setpoint = gm::pid::parameter.Setpoint;
       gm::modbus::variables::last::setpoint = gm::pid::parameter.Setpoint;
+#endif
     }
     break;
   case gm::mode::status::manual:
@@ -725,8 +737,10 @@ void process(const int& value) {
       last::manual,
       change::sensitivity::ForManual)) {
       gm::heater::manual = to::manual(value);
+#ifdef MODBUS_BAUD
       gm::modbus::variables::manual = gm::heater::manual;
       gm::modbus::variables::last::manual = gm::heater::manual;
+#endif
     }
     break;
   case gm::mode::status::kp:
@@ -756,7 +770,7 @@ void process(const int& value) {
     break;
   }
 }
-}
+} /* End of potentiometer name-space */
 
 
 namespace sensor {
@@ -790,7 +804,7 @@ void read() {
   }
   gm::display::updated = true;
 }
-}
+} /* End of sensor name-space */
 
 namespace push {
 namespace button {
@@ -835,7 +849,7 @@ status state(const unsigned long& tick, const uint16_t& value) {
   return result;
 }
 }
-}
+} /* End of push name-space */
 
 namespace eeprom {
 namespace binding {
@@ -870,8 +884,9 @@ void read() {
   gatl::eeprom::read(gm::eeprom::binding::pid);
 }
 }
-}
+} /* End of eeprom name-space */
 
+#ifdef MODBUS_BAUD
 namespace modbus {
 /* 0x03 Read Multiple Holding Registers */
 uint8_t read_holding_registers(
@@ -1061,7 +1076,8 @@ void create() {
 
 }
 }
-}
+} /* End of modbus name-space */
+#endif
 
 }
 }

@@ -23,6 +23,8 @@ include_directories(
 
 target_link_libraries(${astbmpte}
   ${gos_arduino_sketches_unit_testing_target_link_libraries}
+  libarduinomax6675
+  libarduinosensor
   libarduinotick)
 
 add_test(NAME SketchesTestBoardTests COMMAND ${astbmpte})
