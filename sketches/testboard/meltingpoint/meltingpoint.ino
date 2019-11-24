@@ -54,6 +54,7 @@ namespace gatlu = ::gos::atl::utility;
 
 #define MODBUS_SLAVE_ID                      1 
 
+//#define ENABLE_PUSH_BUTTON
 #define PUSH_BUTTON_ANALOG_THREASHOLD      512
 #define PUSH_BUTTON_LONG_PRESS_TIME        250
 #define PUSH_BUTTON_REST_TIME               25
@@ -61,6 +62,7 @@ namespace gatlu = ::gos::atl::utility;
 #define SENSOR_MINIMUM                       0
 #define SENSOR_MAXIMUM                     500
 
+//#define ENABLE_POTENTIOMETER
 #define POTENTIOMETER_RAW_MININUM            0
 #define POTENTIOMETER_RAW_MAXIMUM         1024
 
@@ -129,6 +131,7 @@ namespace temporary {
 int address;
 uint8_t status;
 uint8_t index, to;
+bool is;
 }
 namespace range {
 gatl::type::range<type::Real> setpoint = gatl::type::make_range<type::Real>(
@@ -136,12 +139,20 @@ gatl::type::range<type::Real> setpoint = gatl::type::make_range<type::Real>(
 gatl::type::range<type::Output> output = gatl::type::make_range<type::Output>(
   PID_MINIMUM_OUTPUT, PID_MAXIMUM_OUTPUT);
 }
+namespace options {
+bool uset = false;
+}
 } /* End of variables name-space */
 
 #ifdef MODBUS_BAUD
 namespace modbus {
 void initialize();
 Modbus slave(MODBUS_SLAVE_ID, PIN_RS485_MODBUS_TE);
+/* 0x01 Read Coils */
+uint8_t read_coils(
+  uint8_t fc,
+  uint16_t startaddress,
+  uint16_t length);
 /* 0x03 Read Multiple Holding Registers */
 uint8_t read_holding_registers(
   uint8_t fc,
@@ -149,6 +160,11 @@ uint8_t read_holding_registers(
   uint16_t length);
 /* 0x04 Read Input Registers */
 uint8_t read_input_registers(
+  uint8_t fc,
+  uint16_t startaddress,
+  uint16_t length);
+/* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
+uint8_t write_coils(
   uint8_t fc,
   uint16_t startaddress,
   uint16_t length);
@@ -167,6 +183,7 @@ type::optional::Real setpoint;
 }
 namespace binding {
 namespace count {
+const uint8_t Coil = 1;
 namespace holding {
 const uint8_t Pid = 6;
 const uint8_t Manual = 1;
@@ -177,6 +194,9 @@ const uint8_t Sensor = 1;
 }
 }
 namespace index {
+namespace coil {
+const uint8_t UseT = 0;
+}
 namespace holding {
 namespace pid {
 const uint8_t Setpoint = 0;
@@ -194,6 +214,7 @@ const uint8_t Temperature = 0;
 }
 }
 
+gatl::binding::reference<bool, uint16_t> coils;
 namespace holding {
 gatl::binding::reference<type::Output, uint16_t> manual;
 gatl::binding::reference<type::Real, uint16_t> pid;
@@ -259,6 +280,7 @@ Tick interfaces(INTERVAL_INTERFACE);
 #endif
 } /* End of timer name-space */
 
+#ifdef ENABLE_PUSH_BUTTON
 namespace push {
 namespace button {
 uint16_t value;
@@ -267,6 +289,7 @@ status state(const unsigned long& tick, const uint16_t& value);
 status last;
 }
 } /* End of push button name-space */
+#endif
 
 namespace sensor {
 double value;
@@ -288,16 +311,11 @@ namespace pid {
 namespace tune {
 ::gos::atl::pid::Tune<::gos::meltingpoint::type::Real> k;
 ::gos::atl::pid::TimeTune<::gos::meltingpoint::type::Real> t;
-namespace process {
-void kp();
-void ki();
-void kd();
-void ti();
-void td();
-}
+void apply();
 }
 } /* End of pid name-space */
 
+#ifdef ENABLE_POTENTIOMETER
 namespace potentiometer {
 typedef uint16_t Type;
 typedef gatl::type::optional<Type> Optional;
@@ -319,6 +337,7 @@ Optional manual;
 }
 void process(const int& value);
 } /* End of potentiometer name-space */
+#endif
 
 namespace heater {
 typedef uint8_t Type;
@@ -338,9 +357,16 @@ const uint8_t Kd = 2;
 const uint8_t Ti = 3;
 const uint8_t Td = 4;
 }
+namespace boolean {
+const uint8_t UseT = 0;
 }
-const uint8_t Count = 5;
+}
+namespace count {
+const uint8_t pid = 5;
+const uint8_t boolean = 1;
+}
 gatl::binding::reference<::gos::meltingpoint::type::Real, int> pid;
+gatl::binding::reference<bool, int> boolean;
 void create();
 void read();
 }
@@ -355,7 +381,9 @@ namespace gmt = ::gos::meltingpoint::type;
 namespace gme = ::gos::meltingpoint::eeprom;
 namespace gmd = ::gos::meltingpoint::display;
 namespace gmv = ::gos::meltingpoint::variables;
+#ifdef ENABLE_PUSH_BUTTON
 namespace gmpb = ::gos::meltingpoint::push::button;
+#endif
 namespace gmeb = ::gos::meltingpoint::eeprom::binding;
 namespace gmvt = ::gos::meltingpoint::variables::temporary;
 
@@ -406,7 +434,7 @@ void setup() {
 
 void loop() {
   gm::variables::tick = millis();
-
+#ifdef ENABLE_PUSH_BUTTON
   gm::push::button::value = analogRead(PIN_PUSH_BUTTON);
   gm::push::button::last = gm::push::button::state(gmv::tick, gmpb::value);
   switch (gm::push::button::last) {
@@ -414,18 +442,11 @@ void loop() {
     if (gm::mode::is::setting) {
       switch (gm::mode::state) {
       case gm::mode::status::kp:
-        gm::pid::tune::process::kp();
       case gm::mode::status::ki:
-        gm::pid::tune::process::ki();
-        break;
       case gm::mode::status::kd:
-        gm::pid::tune::process::kd();
-        break;
       case gm::mode::status::ti:
-        gm::pid::tune::process::ti();
-        break;
       case gm::mode::status::td:
-        gm::pid::tune::process::td();
+        gm::pid::tune::apply();
         break;
       }
       gm::mode::is::setting = false;
@@ -436,13 +457,16 @@ void loop() {
     gm::mode::is::setting = true;
     break;
   }
+#endif
 
 #ifdef MODBUS_BAUD
   gm::modbus::slave.poll();
 #endif
 
+#ifdef ENABLE_POTENTIOMETER
   gm::potentiometer::value = analogRead(PIN_POTENTIOMETER);
   gm::potentiometer::process(gm::potentiometer::value);
+#endif
 
   if (gm::mode::state == gm::mode::status::manual) {
 #ifdef NOT_USED
@@ -564,54 +588,31 @@ bool apply(const type::Output& value) {
 
 namespace pid {
 namespace tune {
-namespace process {
-void kp() {
+void apply() {
+  if (variables::options::uset) {
+    gatl::pid::time::milliseconds::tunings(
+      gm::pid::variable,
+      gm::pid::parameter,
+      gm::pid::tune::t);
+    gm::pid::tune::k.Ki = gatl::pid::Ki(
+      gm::pid::parameter.Kp, gm::pid::tune::t.Ti);
+    gm::pid::tune::k.Kd = gatl::pid::Kd(
+      gm::pid::parameter.Kp, gm::pid::tune::t.Td);
+  } else {
+    gatl::pid::tunings(
+      gm::pid::variable,
+      gm::pid::parameter,
+      gm::pid:::time::milliseconds:tune::k);
+    gm::pid::tune::t.Ti = gatl::pid::Ti(
+      gm::pid::parameter.Kp, gm::pid::tune::k.Ki);
+    gm::pid::tune::t.Td = gatl::pid::Td(
+      gm::pid::parameter.Kp, gm::pid::tune::k.Kd);
+  }
   gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Kp);
-  gatl::pid::tunings(
-    gm::pid::variable,
-    gm::pid::parameter,
-    gm::pid::tune::k);
-}
-void ki() {
-  gm::pid::tune::t.Ti = gatl::pid::Ti(
-    gm::pid::parameter.Kp, gm::pid::tune::k.Ki);
-  gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Ti);
   gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Ki);
-  gatl::pid::tunings(
-    gm::pid::variable,
-    gm::pid::parameter,
-    gm::pid::tune::k);
-}
-void kd() {
-  gm::pid::tune::t.Td = gatl::pid::Td(
-    gm::pid::parameter.Kp, gm::pid::tune::k.Kd);
-  gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Td);
   gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Kd);
-  gatl::pid::tunings(
-    gm::pid::variable,
-    gm::pid::parameter,
-    gm::pid::tune::k);
-}
-void ti() {
-  gm::pid::tune::k.Ki = gatl::pid::Ki(
-    gm::pid::parameter.Kp, gm::pid::tune::t.Ti);
   gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Ti);
-  gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Ki);
-  gatl::pid::tunings(
-    gm::pid::variable,
-    gm::pid::parameter,
-    gm::pid::tune::t);
-}
-void td() {
-  gm::pid::tune::k.Kd = gatl::pid::Kd(
-    gm::pid::parameter.Kp, gm::pid::tune::t.Td);
   gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Td);
-  gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Kd);
-  gatl::pid::tunings(
-    gm::pid::variable,
-    gm::pid::parameter,
-    gm::pid::tune::t);
-}
 }
 }
 } /* End of pid name-space */
@@ -695,6 +696,7 @@ void line() {
 }
 } /* End of display name-space */
 
+#ifdef ENABLE_POTENTIOMETER
 namespace potentiometer {
 namespace to {
 const gm::type::Real setpoint(const int& value) {
@@ -737,6 +739,7 @@ void process(const int& value) {
       last::manual,
       change::sensitivity::ForManual)) {
       gm::heater::manual = to::manual(value);
+      gm::variables::output = gm::heater::manual;
 #ifdef MODBUS_BAUD
       gm::modbus::variables::manual = gm::heater::manual;
       gm::modbus::variables::last::manual = gm::heater::manual;
@@ -771,6 +774,7 @@ void process(const int& value) {
   }
 }
 } /* End of potentiometer name-space */
+#endif
 
 
 namespace sensor {
@@ -806,6 +810,7 @@ void read() {
 }
 } /* End of sensor name-space */
 
+#ifdef ENABLE_PUSH_BUTTON
 namespace push {
 namespace button {
 namespace details {
@@ -850,6 +855,7 @@ status state(const unsigned long& tick, const uint16_t& value) {
 }
 }
 } /* End of push name-space */
+#endif
 
 namespace eeprom {
 namespace binding {
@@ -857,7 +863,7 @@ void create() {
   gmv::temporary::address = gatl::binding::create<gm::type::Real, int, uint8_t>(
     gme::binding::pid,
     0,
-    Count,
+    count::pid,
     sizeof(gm::type::Real));
   gatl::binding::set<gm::type::Real, int, uint8_t>(
     gme::binding::pid,
@@ -879,6 +885,15 @@ void create() {
     gme::binding::pid,
     index::pid::Td,
     &gm::pid::tune::t.Td);
+  gmv::temporary::address = gatl::binding::create<bool, int, uint8_t>(
+    gme::binding::boolean,
+    gmv::temporary::address,
+    count::boolean,
+    sizeof(bool));
+  gatl::binding::set<bool, int, uint8_t>(
+    gme::binding::boolean,
+    index::boolean::UseT,
+    &gm::variables::options::uset);
 }
 void read() {
   gatl::eeprom::read(gm::eeprom::binding::pid);
@@ -888,6 +903,17 @@ void read() {
 
 #ifdef MODBUS_BAUD
 namespace modbus {
+/* 0x01 Read Coils */
+uint8_t read_coils(
+  uint8_t fc,
+  uint16_t startaddress,
+  uint16_t length) {
+  gmvt::status = STATUS_ILLEGAL_DATA_ADDRESS;
+  if (gatl::modbus::coil::access(binding::coils, slave, startaddress, length)) {
+    gmvt::status = STATUS_OK;
+  }
+  return gmvt::status;
+}
 /* 0x03 Read Multiple Holding Registers */
 uint8_t read_holding_registers(
   uint8_t fc,
@@ -928,6 +954,23 @@ uint8_t read_input_registers(
     slave,
     startaddress,
     length)) {
+    gmvt::status = STATUS_OK;
+  }
+  return gmvt::status;
+}
+/* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
+uint8_t write_coils(
+  uint8_t fc,
+  uint16_t startaddress,
+  uint16_t length) {
+  gmvt::status = STATUS_ILLEGAL_DATA_ADDRESS;
+  if (gatl::modbus::coil::assign(
+    binding::coils,
+    slave,
+    startaddress,
+    length,
+    gmvt::index,
+    gmvt::to)) {
     gmvt::status = STATUS_OK;
   }
   return gmvt::status;
@@ -974,6 +1017,7 @@ uint8_t write_holding_registers(
     gmvt::index,
     gmvt::to)) {
     gmvt::status = STATUS_OK;
+    gm::variables::temporary::is = false;
     while (gmvt::index < gmvt::to) {
       if (gmvt::index == binding::index::holding::pid::Setpoint) {
         if (gatl::utility::range::isinside(
@@ -990,19 +1034,21 @@ uint8_t write_holding_registers(
         } else {
           return STATUS_ILLEGAL_DATA_VALUE;
         }
-        /* No need to do anything */
       } else if (gmvt::index == binding::index::holding::pid::Kp) {
-        gm::pid::tune::process::kp();
+        gm::variables::temporary::is = true;
       } else if (gmvt::index == binding::index::holding::pid::Ki) {
-        gm::pid::tune::process::ki();
+        gm::variables::temporary::is = true;
       } else if (gmvt::index == binding::index::holding::pid::Kd) {
-        gm::pid::tune::process::kd();
+        gm::variables::temporary::is = true;
       } else if (gmvt::index == binding::index::holding::pid::Ti) {
-        gm::pid::tune::process::ti();
+        gm::variables::temporary::is = true;
       } else if (gmvt::index == binding::index::holding::pid::Td) {
-        gm::pid::tune::process::td();
+        gm::variables::temporary::is = true;
       }
       gmvt::index++;
+    }
+    if (gm::variables::temporary::is) {
+      gm::pid::tune::apply();
     }
   }
   return gmvt::status;
@@ -1025,6 +1071,16 @@ const uint8_t Output = 1;
 const uint8_t Real = 2;
 }
 void create() {
+  gmvt::address = gatl::binding::create<bool, uint16_t, uint8_t > (
+    binding::coils,
+    0,
+    binding::count::Coil,
+    1);
+  gatl::binding::set<bool, uint16_t, uint8_t>(
+    binding::coils,
+    index::coil::UseT,
+    &gm::variables::options::uset);
+
   gmvt::address = gatl::binding::create<gm::type::Output, uint16_t, uint8_t>(
     binding::holding::manual,
     0,
@@ -1047,23 +1103,23 @@ void create() {
   gatl::binding::set<gm::type::Real, uint16_t, uint8_t>(
     binding::holding::pid,
     index::holding::pid::Kp,
-    &gm::pid::parameter.Kp);
+    &pid::parameter.Kp);
   gatl::binding::set<gm::type::Real, uint16_t, uint8_t>(
     binding::holding::pid,
     index::holding::pid::Ki,
-    &gm::pid::tune::k.Ki);
+    &pid::tune::k.Ki);
   gatl::binding::set<gm::type::Real, uint16_t, uint8_t>(
     binding::holding::pid,
     index::holding::pid::Kd,
-    &gm::pid::tune::k.Kd);
+    &pid::tune::k.Kd);
   gatl::binding::set<gm::type::Real, uint16_t, uint8_t>(
     binding::holding::pid,
     index::holding::pid::Ti,
-    &gm::pid::tune::t.Ti);
+    &pid::tune::t.Ti);
   gatl::binding::set<gm::type::Real, uint16_t, uint8_t>(
     binding::holding::pid,
     index::holding::pid::Td,
-    &gm::pid::tune::t.Td);
+    &pid::tune::t.Td);
   
   gmvt::address = gatl::binding::create<gm::type::Output, uint16_t, uint8_t>(
     binding::input::output,
