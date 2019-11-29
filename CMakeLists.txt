@@ -14,8 +14,8 @@ project(ArduinoFolder VERSION 1.0
 set(gos_arduino_sketches_dir
   "${CMAKE_CURRENT_SOURCE_DIR}/sketches")
 
-set(gos_arduino_libraries_dir
-  "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
+#set(gos_arduino_libraries_dir
+#  "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
 
 list(APPEND gos_arduino_sketches_unit_testing_src
   "${CMAKE_CURRENT_SOURCE_DIR}/tests/maxsensors.cpp")
