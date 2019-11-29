@@ -1,5 +1,8 @@
+CMakeSettings.json
 *.stackdump
 .cmake/
 .vs/
+out/
 *.elf
 *.hex
+

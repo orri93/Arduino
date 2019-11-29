@@ -28,9 +28,6 @@
 
 #include <gatlpid.h>
 
-/* Median for push button */
-#include <gatlmedian.h>
-
 #include <gatldisplay.h>
 #include <gatlformat.h>
 
@@ -90,6 +87,13 @@ namespace gatlu = ::gos::atl::utility;
 #define TEXT_ID_SET_TD "kD: "
 
 #define TEXT_UNIT " C"
+
+#define GOS_MP_PID_HOLDING_SP_INDEX 0
+#define GOS_MP_PID_HOLDING_KP_INDEX 1
+#define GOS_MP_PID_HOLDING_KI_INDEX 2
+#define GOS_MP_PID_HOLDING_KD_INDEX 3
+#define GOS_MP_PID_HOLDING_TI_INDEX 4
+#define GOS_MP_PID_HOLDING_TD_INDEX 5
 
 namespace gos {
 namespace meltingpoint {
@@ -200,12 +204,12 @@ const uint8_t UseT = 0;
 }
 namespace holding {
 namespace pid {
-const uint8_t Setpoint = 0;
-const uint8_t Kp = 1;
-const uint8_t Ki = 2;
-const uint8_t Kd = 3;
-const uint8_t Ti = 4;
-const uint8_t Td = 5;
+const uint8_t Setpoint = GOS_MP_PID_HOLDING_SP_INDEX;
+const uint8_t Kp = GOS_MP_PID_HOLDING_KP_INDEX;
+const uint8_t Ki = GOS_MP_PID_HOLDING_KI_INDEX;
+const uint8_t Kd = GOS_MP_PID_HOLDING_KD_INDEX;
+const uint8_t Ti = GOS_MP_PID_HOLDING_TI_INDEX;
+const uint8_t Td = GOS_MP_PID_HOLDING_TD_INDEX;
 }
 const uint8_t Manual = 0;
 }
@@ -217,8 +221,8 @@ const uint8_t Temperature = 0;
 
 gatl::binding::reference<bool, uint16_t> coils;
 namespace holding {
-gatl::binding::reference<type::Output, uint16_t> manual;
-gatl::binding::reference<type::Real, uint16_t> pid;
+gatl::binding::change::aware::reference<type::Output, uint16_t> manual;
+gatl::binding::change::aware::reference<type::Real, uint16_t> pid;
 }
 namespace input {
 gatl::binding::reference<type::Output, uint16_t> output;
@@ -1022,46 +1026,53 @@ uint8_t write_holding_registers(
     gmvt::to)) {
     gmvt::status = STATUS_OK;
     gm::variables::temporary::is = false;
-    gm::variables::temporary::isk = false;
-    gm::variables::temporary::ist = false;
     while (gmvt::index < gmvt::to) {
-      if (gmvt::index == binding::index::holding::pid::Setpoint) {
-        if (gatl::utility::range::isinside(
-          variables::setpoint,
-          gm::variables::range::setpoint)) {
-          if (gatlu::changed::apply::is<type::Real>(
+      if(gatl::binding::change::is(binding::holding::pid, gmvt::index)) {
+        switch (gmvt::index) {
+        case GOS_MP_PID_HOLDING_SP_INDEX:
+          if (gatl::utility::range::isinside(
             variables::setpoint,
-            variables::last::setpoint)) {
-            pid::parameter.Setpoint = variables::setpoint;
-            if (gm::mode::is::unequal(mode::status::automatic)) {
-              mode::gotom::state(mode::status::automatic);
+            gm::variables::range::setpoint)) {
+            if (gatlu::changed::apply::is<type::Real>(
+              variables::setpoint,
+              variables::last::setpoint)) {
+              pid::parameter.Setpoint = variables::setpoint;
+              if (gm::mode::is::unequal(mode::status::automatic)) {
+                mode::gotom::state(mode::status::automatic);
+              }
             }
+          } else {
+            return STATUS_ILLEGAL_DATA_VALUE;
           }
-        } else {
-          return STATUS_ILLEGAL_DATA_VALUE;
-        }
-      } else if (gmvt::index == binding::index::holding::pid::Kp) {
-        gm::variables::temporary::is = true;
-        gm::mode::gotom::state(gm::mode::status::kp);
-      } else if (gmvt::index == binding::index::holding::pid::Ki) {
-        if (!gm::variables::options::uset) {
+          break;
+        case GOS_MP_PID_HOLDING_KP_INDEX:
           gm::variables::temporary::is = true;
-          gm::mode::gotom::state(gm::mode::status::ki);
-        }
-      } else if (gmvt::index == binding::index::holding::pid::Kd) {
-        if (!gm::variables::options::uset) {
-          gm::variables::temporary::is = true;
-          gm::mode::gotom::state(gm::mode::status::kd);
-        }
-      } else if (gmvt::index == binding::index::holding::pid::Ti) {
-        if (gm::variables::options::uset) {
-          gm::variables::temporary::is = true;
-          gm::mode::gotom::state(gm::mode::status::ti);
-        }
-      } else if (gmvt::index == binding::index::holding::pid::Td) {
-        if (gm::variables::options::uset) {
-          gm::variables::temporary::is = true;
-          gm::mode::gotom::state(gm::mode::status::td);
+          gm::mode::gotom::state(gm::mode::status::kp);
+          break;
+        case GOS_MP_PID_HOLDING_KI_INDEX:
+          if (!gm::variables::options::uset) {
+            gm::variables::temporary::is = true;
+            gm::mode::gotom::state(gm::mode::status::ki);
+          }
+          break;
+        case GOS_MP_PID_HOLDING_KD_INDEX:
+          if (!gm::variables::options::uset) {
+            gm::variables::temporary::is = true;
+            gm::mode::gotom::state(gm::mode::status::kd);
+          }
+          break;
+        case GOS_MP_PID_HOLDING_TI_INDEX:
+          if (gm::variables::options::uset) {
+            gm::variables::temporary::is = true;
+            gm::mode::gotom::state(gm::mode::status::ti);
+          }
+          break;
+        case GOS_MP_PID_HOLDING_TD_INDEX:
+          if (gm::variables::options::uset) {
+            gm::variables::temporary::is = true;
+            gm::mode::gotom::state(gm::mode::status::td);
+          }
+          break;
         }
       }
       gmvt::index++;
@@ -1094,7 +1105,7 @@ void create() {
    *  00001  Use T tuning values
    *
    */
-  gmvt::address = gatl::binding::create<bool, uint16_t, uint8_t > (
+  gmvt::address = gatl::binding::create<bool, uint16_t, uint8_t>(
     binding::coils,
     0,
     binding::count::Coil,
@@ -1119,7 +1130,8 @@ void create() {
    *  40012  Td         (0x000b)
    *  40013  --L--
    */
-  gmvt::address = gatl::binding::create<gm::type::Output, uint16_t, uint8_t>(
+  gmvt::address = gatl::binding::change::aware::create<
+    gm::type::Output, uint16_t, uint8_t>(
     binding::holding::manual,
     0,
     binding::count::holding::Manual,
@@ -1129,7 +1141,8 @@ void create() {
     index::holding::Manual,
     &variables::manual);
 
-  gmvt::address = gatl::binding::create<gm::type::Real, uint16_t, uint8_t>(
+  gmvt::address = gatl::binding::change::aware::create<
+    gm::type::Real, uint16_t, uint8_t>(
     binding::holding::pid,
     gmvt::address,
     binding::count::holding::Pid,

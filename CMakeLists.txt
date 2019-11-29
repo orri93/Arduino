@@ -17,7 +17,7 @@ set(gos_arduino_sketches_dir
 set(gos_arduino_libraries_dir
   "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
 
-set(gos_arduino_sketches_unit_testing_src
+list(APPEND gos_arduino_sketches_unit_testing_src
   "${CMAKE_CURRENT_SOURCE_DIR}/tests/maxsensors.cpp")
 
 set(gos_arduino_unit_testing_dir
@@ -25,25 +25,23 @@ set(gos_arduino_unit_testing_dir
 
 set(gos_arduino_unit_testing_sublibraries_dir
   "${CMAKE_CURRENT_SOURCE_DIR}/gos/ArduinoUnitTesting/sublibraries")
+set(gos_arduino_unit_testing_sublibraries_gatl_dir
+  "${gos_arduino_unit_testing_sublibraries_dir}/arduinotemplates/src")
 
-set(gos_arduino_sketches_unit_testing_mock_include 
-#  "${gos_arduino_unit_testing_dir}/include/avr"
+list(APPEND gos_arduino_sketches_unit_testing_mock_include 
+  "${gos_arduino_unit_testing_dir}/include"
   "${gos_arduino_unit_testing_dir}/include/mock"
   "${gos_arduino_unit_testing_dir}/extern/arduinomock"
-# "${gos_arduino_unit_testing_dir}/extern/arduinomock/include/arduino-mock"
   "${gos_arduino_unit_testing_dir}/extern/googletest/googlemock/include"
   "${gos_arduino_unit_testing_dir}/extern/googletest/googletest/include")
 
-set(gos_arduino_sketches_unit_testing_include
+list(APPEND gos_arduino_sketches_unit_testing_include
   ${gos_arduino_sketches_dir}
-  ${gos_arduino_sketches_unit_testing_mock_include}
-  "${gos_arduino_unit_testing_sublibraries_dir}/arduinosinled/src"
-  "${gos_arduino_unit_testing_sublibraries_dir}/arduinotemplates/src"
-  "${gos_arduino_unit_testing_dir}/extern/libraries/FixedPointsArduino/src"
-  "${gos_arduino_unit_testing_dir}/extern/libraries/ArduinoModbusSlave/src"
-  "${gos_arduino_unit_testing_dir}/include")
+  ${gos_arduino_sketches_unit_testing_mock_include})
 
-set(gos_arduino_sketches_unit_testing_target_link_libraries
+add_subdirectory(gos/ArduinoUnitTesting)
+
+list(APPEND gos_arduino_sketches_unit_testing_target_link_libraries
   gtest
   gmock
   gmock_main
@@ -51,11 +49,11 @@ set(gos_arduino_sketches_unit_testing_target_link_libraries
   libavrlibc
   libgosutils
   libarduinomock
-  libarduinoextern
-  libarduinosinled)
+  libarduinoextern)
 
 set(gtest_force_shared_crt ON CACHE BOOL "Prefer to use Shared CRT for static")
 
+option(GOS_ARDUINO_BUILD_ARDUINO_TOOLS "Build Arduino tools inside the gos folder" ON)
 option(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS "Build tests" ON)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -64,8 +62,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_PLATFORM_INDEPENDENT_CODE ON)
 
 #add_subdirectory(gos/ArduinoTesting)
-add_subdirectory(gos/ArduinoTools)
-add_subdirectory(gos/ArduinoUnitTesting)
+if (GOS_ARDUINO_BUILD_ARDUINO_TOOLS)
+  add_subdirectory(gos/ArduinoTools)
+endif ()
 
 if(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS)
   enable_testing()
