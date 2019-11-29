@@ -54,7 +54,8 @@ namespace gatlu = ::gos::atl::utility;
 
 #define MODBUS_SLAVE_ID                      1 
 
-//#define ENABLE_PUSH_BUTTON
+#define ENABLE_PUSH_BUTTON
+//#define PUSH_BUTTON_SET
 #define PUSH_BUTTON_ANALOG_THREASHOLD      512
 #define PUSH_BUTTON_LONG_PRESS_TIME        250
 #define PUSH_BUTTON_REST_TIME               25
@@ -77,16 +78,16 @@ namespace gatlu = ::gos::atl::utility;
 #define TEXT_ID_IDLE "I: "
 #define TEXT_ID_SETPOINT "S: "
 #define TEXT_ID_MANUAL "M: "
-#define TEXT_ID_KP "Kp: "
-#define TEXT_ID_KI "Ki: "
-#define TEXT_ID_KD "Kd: "
-#define TEXT_ID_TI "Ti: "
-#define TEXT_ID_TD "Td: "
-#define TEXT_ID_SET_KP "KP: "
-#define TEXT_ID_SET_KI "KI: "
-#define TEXT_ID_SET_KD "KD: "
-#define TEXT_ID_SET_TI "TI: "
-#define TEXT_ID_SET_TD "TD: "
+#define TEXT_ID_KP "KP: "
+#define TEXT_ID_KI "KI: "
+#define TEXT_ID_KD "KD: "
+#define TEXT_ID_TI "TI: "
+#define TEXT_ID_TD "TD: "
+#define TEXT_ID_SET_KP "kP: "
+#define TEXT_ID_SET_KI "kI: "
+#define TEXT_ID_SET_KD "kD: "
+#define TEXT_ID_SET_TI "kI: "
+#define TEXT_ID_SET_TD "kD: "
 
 #define TEXT_UNIT " C"
 
@@ -131,7 +132,7 @@ namespace temporary {
 int address;
 uint8_t status;
 uint8_t index, to;
-bool is;
+bool is, ist, isk;
 }
 namespace range {
 gatl::type::range<type::Real> setpoint = gatl::type::make_range<type::Real>(
@@ -421,8 +422,8 @@ void setup() {
 #endif
 
   gm::pid::parameter.Range = gm::variables::range::output;
-  gm::pid::parameter.TimeMs = INTERVAL_CYCLE;
-  gatl::pid::tunings(
+  gm::pid::parameter.Time = INTERVAL_CYCLE;
+  gatl::pid::time::milliseconds::tunings(
     gm::pid::variable,
     gm::pid::parameter,
     gm::pid::tune::k);
@@ -453,9 +454,11 @@ void loop() {
     }
     gm::mode::gotom::next();
     break;
+#ifdef PUSH_BUTTON_SET
   case gm::push::button::status::prolonged:
     gm::mode::is::setting = true;
     break;
+#endif
   }
 #endif
 
@@ -474,6 +477,7 @@ void loop() {
       /* Error handling */
     }
 #else
+    gm::variables::output = gm::modbus::variables::manual;
     gm::heater::apply();
 #endif
   }
@@ -594,18 +598,18 @@ void apply() {
       gm::pid::variable,
       gm::pid::parameter,
       gm::pid::tune::t);
-    gm::pid::tune::k.Ki = gatl::pid::Ki(
+    gm::pid::tune::k.Ki = gatl::pid::time::seconds::Ki(
       gm::pid::parameter.Kp, gm::pid::tune::t.Ti);
-    gm::pid::tune::k.Kd = gatl::pid::Kd(
+    gm::pid::tune::k.Kd = gatl::pid::time::seconds::Kd(
       gm::pid::parameter.Kp, gm::pid::tune::t.Td);
   } else {
-    gatl::pid::tunings(
+    gatl::pid::time::milliseconds::tunings(
       gm::pid::variable,
       gm::pid::parameter,
-      gm::pid:::time::milliseconds:tune::k);
-    gm::pid::tune::t.Ti = gatl::pid::Ti(
+      gm::pid::tune::k);
+    gm::pid::tune::t.Ti = gatl::pid::time::seconds::Ti(
       gm::pid::parameter.Kp, gm::pid::tune::k.Ki);
-    gm::pid::tune::t.Td = gatl::pid::Td(
+    gm::pid::tune::t.Td = gatl::pid::time::seconds::Td(
       gm::pid::parameter.Kp, gm::pid::tune::k.Kd);
   }
   gatl::eeprom::update(gmeb::pid, gmeb::index::pid::Kp);
@@ -1018,6 +1022,8 @@ uint8_t write_holding_registers(
     gmvt::to)) {
     gmvt::status = STATUS_OK;
     gm::variables::temporary::is = false;
+    gm::variables::temporary::isk = false;
+    gm::variables::temporary::ist = false;
     while (gmvt::index < gmvt::to) {
       if (gmvt::index == binding::index::holding::pid::Setpoint) {
         if (gatl::utility::range::isinside(
@@ -1036,14 +1042,27 @@ uint8_t write_holding_registers(
         }
       } else if (gmvt::index == binding::index::holding::pid::Kp) {
         gm::variables::temporary::is = true;
+        gm::mode::gotom::state(gm::mode::status::kp);
       } else if (gmvt::index == binding::index::holding::pid::Ki) {
-        gm::variables::temporary::is = true;
+        if (!gm::variables::options::uset) {
+          gm::variables::temporary::is = true;
+          gm::mode::gotom::state(gm::mode::status::ki);
+        }
       } else if (gmvt::index == binding::index::holding::pid::Kd) {
-        gm::variables::temporary::is = true;
+        if (!gm::variables::options::uset) {
+          gm::variables::temporary::is = true;
+          gm::mode::gotom::state(gm::mode::status::kd);
+        }
       } else if (gmvt::index == binding::index::holding::pid::Ti) {
-        gm::variables::temporary::is = true;
+        if (gm::variables::options::uset) {
+          gm::variables::temporary::is = true;
+          gm::mode::gotom::state(gm::mode::status::ti);
+        }
       } else if (gmvt::index == binding::index::holding::pid::Td) {
-        gm::variables::temporary::is = true;
+        if (gm::variables::options::uset) {
+          gm::variables::temporary::is = true;
+          gm::mode::gotom::state(gm::mode::status::td);
+        }
       }
       gmvt::index++;
     }
@@ -1071,6 +1090,10 @@ const uint8_t Output = 1;
 const uint8_t Real = 2;
 }
 void create() {
+  /*
+   *  00001  Use T tuning values
+   *
+   */
   gmvt::address = gatl::binding::create<bool, uint16_t, uint8_t > (
     binding::coils,
     0,
@@ -1081,6 +1104,21 @@ void create() {
     index::coil::UseT,
     &gm::variables::options::uset);
 
+  /*
+   *  40001  Manual     (0x0000)
+   *  40002  Setpoint   (0x0001)
+   *  40003  --L--
+   *  40004  Kp         (0x0003)
+   *  40005  --L--
+   *  40006  Ki         (0x0005)
+   *  40007  --L--
+   *  40008  Kd         (0x0007)
+   *  40009  --L--
+   *  40010  Ti         (0x0009)
+   *  40011  --L--
+   *  40012  Td         (0x000b)
+   *  40013  --L--
+   */
   gmvt::address = gatl::binding::create<gm::type::Output, uint16_t, uint8_t>(
     binding::holding::manual,
     0,
@@ -1121,6 +1159,11 @@ void create() {
     index::holding::pid::Td,
     &pid::tune::t.Td);
   
+  /*
+   *  30001  Output from PID
+   *  30002  Temperature
+   *  30003  --L--
+   */
   gmvt::address = gatl::binding::create<gm::type::Output, uint16_t, uint8_t>(
     binding::input::output,
     0,
