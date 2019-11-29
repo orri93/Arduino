@@ -83,8 +83,8 @@ namespace gatlu = ::gos::atl::utility;
 #define TEXT_ID_SET_KP "kP: "
 #define TEXT_ID_SET_KI "kI: "
 #define TEXT_ID_SET_KD "kD: "
-#define TEXT_ID_SET_TI "kI: "
-#define TEXT_ID_SET_TD "kD: "
+#define TEXT_ID_SET_TI "tI: "
+#define TEXT_ID_SET_TD "tD: "
 
 #define TEXT_UNIT " C"
 
@@ -94,6 +94,13 @@ namespace gatlu = ::gos::atl::utility;
 #define GOS_MP_PID_HOLDING_KD_INDEX 3
 #define GOS_MP_PID_HOLDING_TI_INDEX 4
 #define GOS_MP_PID_HOLDING_TD_INDEX 5
+
+#define GOS_MP_PID_HOLDING_SP_ADDRESS  1
+#define GOS_MP_PID_HOLDING_KP_ADDRESS  3
+#define GOS_MP_PID_HOLDING_KI_ADDRESS  5
+#define GOS_MP_PID_HOLDING_KD_ADDRESS  7
+#define GOS_MP_PID_HOLDING_TI_ADDRESS  9
+#define GOS_MP_PID_HOLDING_TD_ADDRESS 11
 
 namespace gos {
 namespace meltingpoint {
@@ -917,7 +924,7 @@ uint8_t read_coils(
   uint16_t startaddress,
   uint16_t length) {
   gmvt::status = STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::coil::access(binding::coils, slave, startaddress, length)) {
+  if (gatl::modbus::binding::coil::access(binding::coils, slave, startaddress, length)) {
     gmvt::status = STATUS_OK;
   }
   return gmvt::status;
@@ -928,14 +935,14 @@ uint8_t read_holding_registers(
   uint16_t startaddress,
   uint16_t length) {
   gmvt::status = STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::registers::access(
+  if (gatl::modbus::binding::registers::access(
     binding::holding::manual,
     slave,
     startaddress,
     length)) {
     gmvt::status = STATUS_OK;
   }
-  if (gatl::modbus::two::access(
+  if (gatl::modbus::binding::two::access(
     binding::holding::pid,
     slave,
     startaddress,
@@ -950,14 +957,14 @@ uint8_t read_input_registers(
   uint16_t startaddress,
   uint16_t length) {
   gmvt::status = STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::registers::access(
+  if (gatl::modbus::binding::registers::access(
     binding::input::output,
     slave,
     startaddress,
     length)) {
     gmvt::status = STATUS_OK;
   }
-  if (gatl::modbus::two::access(
+  if (gatl::modbus::binding::two::access(
     binding::input::sensor,
     slave,
     startaddress,
@@ -972,7 +979,7 @@ uint8_t write_coils(
   uint16_t startaddress,
   uint16_t length) {
   gmvt::status = STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::coil::assign(
+  if (gatl::modbus::binding::coil::assign(
     binding::coils,
     slave,
     startaddress,
@@ -989,7 +996,7 @@ uint8_t write_holding_registers(
   uint16_t startaddress,
   uint16_t length) {
   gmvt::status = STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::registers::assign(
+  if (gatl::modbus::binding::registers::assign(
     binding::holding::manual,
     slave,
     startaddress,
@@ -1017,7 +1024,7 @@ uint8_t write_holding_registers(
       gmvt::index++;
     }
   }
-  if (gatl::modbus::two::assign(
+  if (gatl::modbus::binding::two::assign(
     binding::holding::pid,
     slave,
     startaddress,

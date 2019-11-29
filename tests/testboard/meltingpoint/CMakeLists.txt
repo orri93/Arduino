@@ -21,6 +21,9 @@ list(APPEND astbmpte_libraries
 
 add_executable(${astbmpte_target} meltingpoint.cpp)
 
+target_compile_definitions(${astbmpte_target} PRIVATE
+  GOS_ARDUINO_TEMPLATE_LIBRARY_BINDING_TESTING)
+
 target_include_directories(${astbmpte_target} PRIVATE
   ${astbmpte_include_directories})
 
