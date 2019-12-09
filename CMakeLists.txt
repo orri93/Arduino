@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 3.8.2)
 
-#set(gos_arduino_folder_additional_module_path
-#  "${CMAKE_SOURCE_DIR}/.cmake")
-
-#set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/.cmake")
-
-#include(Arduino-Toolchain)
-
 project(ArduinoFolder VERSION 1.0
   DESCRIPTION "GOS Arduino folder"
   LANGUAGES C CXX ASM)
+
+option(GOS_ARDUINO_BUILD_ARDUINO_TOOLS
+  "Build Arduino tools inside the gos folder" ON)
+option(GOS_ARDUINO_LIB_MODBUS "Build modbus library" ON)
+option(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS "Build tests" ON)
+option(GOS_ARDUINO_TOOLS "Build tools" ON)
+
+set(gos_arduino_include_dir
+  "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(gos_arduino_sketches_dir
   "${CMAKE_CURRENT_SOURCE_DIR}/sketches")
@@ -53,13 +55,70 @@ list(APPEND gos_arduino_sketches_unit_testing_target_link_libraries
 
 set(gtest_force_shared_crt ON CACHE BOOL "Prefer to use Shared CRT for static")
 
-option(GOS_ARDUINO_BUILD_ARDUINO_TOOLS "Build Arduino tools inside the gos folder" ON)
-option(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS "Build tests" ON)
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_PLATFORM_INDEPENDENT_CODE ON)
+
+if (GOS_ARDUINO_LIB_MODBUS)
+  add_subdirectory(extern/libmodbus)
+  list(APPEND extern_libmodbus_include
+    ${CMAKE_CURRENT_BINARY_DIR}/extern/libmodbus/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/extern/libmodbus/src)
+  set(extern_libmodbus libmodbus)
+endif ()
+
+if (GOS_ARDUINO_TOOLS)
+  set(gos_build_dependency_boost ON)
+  set(libgosarduinotools_target libgosarduinotools)
+  list(APPEND gos_arduino_boost_package
+    program_options
+    log_setup
+    regex
+    log)
+  list(APPEND libgosarduinotools_libraries
+    ${libgosarduinotools_target}
+    Boost::program_options
+    Boost::filesystem
+    Boost::date_time
+    Boost::log_setup
+    Boost::regex
+    Boost::log)
+  list(APPEND libgosarduinotools_include
+     ${gos_arduino_include_dir})
+  list(APPEND libgosarduinotools_public_header
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/exception.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/options.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/setting.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/default.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/types.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/text.h")
+endif ()
+
+if (gos_build_dependency_boost)
+  set(Boost_USE_MULTITHREADED        ON)
+  set(Boost_USE_STATIC_RUNTIME      OFF)
+  if (BUILD_SHARED_LIBS)
+    set(Boost_USE_STATIC_LIBS       OFF)    
+  else ()
+    set(Boost_USE_STATIC_LIBS        ON)
+  endif ()
+
+  list(APPEND gos_arduino_boost_package
+    system
+    date_time
+    filesystem)
+
+  find_package(Boost 1.71 COMPONENTS REQUIRED
+    ${gos_arduino_boost_package})
+
+  list(APPEND libgosarduinotools_include
+    ${Boost_INCLUDE_DIRS})
+endif ()
+
+if (GOS_ARDUINO_TOOLS)
+  add_subdirectory(tools)
+endif ()
 
 #add_subdirectory(gos/ArduinoTesting)
 if (GOS_ARDUINO_BUILD_ARDUINO_TOOLS)

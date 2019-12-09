@@ -8,26 +8,21 @@
 #include <EEPROM.h>
 #include <SPI.h>
 
-#include <mock/ModbusSlave.h>
+#include <testboard/modbus/modbus.ino>
 
-#include <testboard/meltingpoint/meltingpoint.ino>
+namespace gm = ::gos::modbus;
+namespace gmd = ::gos::modbus::display;
 
-namespace gm = ::gos::meltingpoint;
-namespace gmd = ::gos::meltingpoint::display;
-
-class MeltingPointFixture : public ::testing::Test {
+class ModbusPointFixture: public ::testing::Test{
 public:
   void SetUp() override {
     arduinomock = arduinoMockInstance();
-    if (::gos::meltingpoint::display::oled.U8g2 == nullptr) {
-      ::gos::meltingpoint::display::oled.U8g2 = new U8g2;
+    if (::gos::modbus::display::oled.U8g2 == nullptr) {
+      ::gos::modbus::display::oled.U8g2 = new U8g2;
     }
     serial = serialMockInstance();
     eeprom = EEPROMMockInstance();
     spi = spiMockInstance();
-
-    ::gos::meltingpoint::modbus::slave.createcoils(1);
-    ::gos::meltingpoint::modbus::slave.createregisters(16);
   }
 
   void TearDown() override {
@@ -35,7 +30,7 @@ public:
     releaseEEPROMMock();
     releaseSerialMock();
     releaseArduinoMock();
-    if (::gos::meltingpoint::display::oled.U8g2) {
+    if (::gos::modbus::display::oled.U8g2) {
       delete gmd::oled.U8g2;
       gmd::oled.U8g2 = nullptr;
     }
@@ -49,7 +44,7 @@ public:
   std::mutex mutex;
 };
 
-TEST_F(MeltingPointFixture, Setup) {
+TEST_F(ModbusPointFixture, Setup) {
   EXPECT_CALL(*(gmd::oled.U8g2), begin()).
     Times(testing::AtLeast(1));
   EXPECT_CALL(*arduinomock, pinMode).Times(testing::AtLeast(4));
@@ -61,7 +56,7 @@ TEST_F(MeltingPointFixture, Setup) {
   setup();
 }
 
-TEST_F(MeltingPointFixture, Loop) {
+TEST_F(ModbusPointFixture, Loop) {
   EXPECT_CALL(*arduinomock, millis)
     .Times(testing::AtLeast(1))
     .WillOnce(testing::Return(1));
@@ -76,19 +71,24 @@ TEST_F(MeltingPointFixture, Loop) {
   loop();
 }
 
-TEST_F(MeltingPointFixture, WriteHoldingRegisters) {
+TEST_F(ModbusPointFixture, WriteHoldingRegisters) {
   uint8_t modbusresult;
-  ::gos::meltingpoint::modbus::binding::create();
+  ::gos::modbus::modbus::binding::create();
+  ::gos::modbus::modbus::Handler handler;
 
-  gm::type::Real number = static_cast<gm::type::Real>(93.11F);
-  gm::modbus::slave.setregisters<gm::type::Real>(0, number);
+  gm::type::Real number = 93.11F;
+  gm::type::Real value;
 
-  modbusresult = ::gos::meltingpoint::modbus::write_holding_registers(
+  modbusresult = handler.WriteHoldingRegisters(
     16,   // Function
     3,    // Address of Kp
     2);   // Length
+
   EXPECT_EQ(STATUS_OK, modbusresult);
-  EXPECT_FLOAT_EQ(number, gm::pid::parameter.Kp);
+  value = gatl::binding::barray::get(
+    gm::binding::barray::real,
+    gm::binding::barray::index::real::Kp);
+  EXPECT_FLOAT_EQ(number, value);
 
   gatl::binding::testing::clean<bool, uint16_t, uint8_t>(
     gm::modbus::binding::coils);
@@ -97,12 +97,5 @@ TEST_F(MeltingPointFixture, WriteHoldingRegisters) {
     gm::modbus::binding::input::output);
   gatl::binding::testing::clean<gm::type::Real, uint16_t, uint8_t>(
     gm::modbus::binding::input::sensor);
-
-  gatl::binding::change::aware::testing::clean<
-    gm::type::Output, uint16_t, uint8_t>(
-    gm::modbus::binding::holding::manual);
-  gatl::binding::change::aware::testing::clean<
-    gm::type::Real, uint16_t, uint8_t>(
-      gm::modbus::binding::holding::pid);
 }
 

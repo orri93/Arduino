@@ -31,9 +31,6 @@
 #include <gatldisplay.h>
 #include <gatlformat.h>
 
-namespace gatl = ::gos::atl;
-namespace gatlu = ::gos::atl::utility;
-
 #define PIN_RS485_MODBUS_RX                  0
 #define PIN_RS485_MODBUS_TX                  1
 #define PIN_RS485_MODBUS_TE                  2
@@ -101,6 +98,9 @@ namespace gatlu = ::gos::atl::utility;
 #define GOS_MP_PID_HOLDING_KD_ADDRESS  7
 #define GOS_MP_PID_HOLDING_TI_ADDRESS  9
 #define GOS_MP_PID_HOLDING_TD_ADDRESS 11
+
+namespace gatl = ::gos::atl;
+namespace gatlu = ::gos::atl::utility;
 
 namespace gos {
 namespace meltingpoint {

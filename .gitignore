@@ -1,8 +1,12 @@
 CMakeSettings.json
+.qmake.stash
 *.stackdump
+Makefile
+Makefile.*
+*.user
 .cmake/
+build/
 .vs/
 out/
 *.elf
 *.hex
-

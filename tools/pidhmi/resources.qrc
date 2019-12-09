@@ -1,0 +1,18 @@
+<RCC>
+  <qresource prefix="/">
+    <file>qml/old/ScopeView.qml</file>
+    <file>qml/old/MultiButton.qml</file>
+    <file>qml/old/ControlPanel.qml</file>
+    <file>qml/old/FloatSpinBox.qml</file>
+    <file>qml/qmloscilloscope/main.qml</file>
+    <file>qml/qmloscilloscope/ScopeView.qml</file>
+    <file>qml/qmloscilloscope/ControlPanel.qml</file>
+    <file>qml/qmloscilloscope/MultiButton.qml</file>
+    <file>qml/scratchpad/Scratchpad1.qml</file>
+    <file>qml/scratchpad/main.qml</file>
+    <file>qml/pid/PidPanel.qml</file>
+    <file>qml/pid/RealSpinBox.qml</file>
+    <file>qml/pid/PidChart.qml</file>
+    <file>qml/pid/main.qml</file>
+  </qresource>
+</RCC>

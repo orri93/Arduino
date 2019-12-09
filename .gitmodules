@@ -93,3 +93,6 @@
 [submodule "libraries/GosModbus"]
 	path = libraries/GosModbus
 	url = git@github.com:orri93/arduinomodbus.git
+[submodule "extern/libmodbus"]
+	path = extern/libmodbus
+	url = https://github.com/orri93/libmodbus.git
