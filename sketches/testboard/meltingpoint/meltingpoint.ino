@@ -916,7 +916,7 @@ void read() {
 }
 } /* End of eeprom name-space */
 
-#ifdef MODBUS_BAUD
+#if defined(MODBUS_BAUD) && defined(USE_ARDUINO_MODBUS_SLAVE)
 namespace modbus {
 /* 0x01 Read Coils */
 uint8_t read_coils(

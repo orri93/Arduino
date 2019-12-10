@@ -81,7 +81,7 @@ namespace gos {
 namespace modbus {
 
 namespace mode {
-enum class status { idle, manual, automatic, kp, ki, kd, ti, td };
+enum class status { idle, coil, manual, automatic, kp, ki, kd, ti, td };
 status state = status::idle;
 namespace is {
 bool equal(const status& state);
@@ -155,8 +155,13 @@ void create();
 
 #ifdef MODBUS_BAUD
 namespace modbus {
+typedef ::gos::atl::modbus::Handler<
+  uint16_t,
+  uint16_t,
+  uint16_t,
+  uint8_t> Base;
 void initialize();
-class Handler : public virtual gatl::modbus::Handler<> {
+class Handler : public virtual Base {
 public:
   Result ReadCoils(
     const Function& function,
@@ -291,6 +296,7 @@ const uint8_t boolean = 1;
 }
 gatl::binding::reference<bool, int> boolean;
 void read();
+void update();
 }
 } /* End of eeprom name-space */
 
@@ -352,7 +358,7 @@ void loop() {
   gatl::modbus::loop<>(
     Serial,
     gm::modbus::parameter,
-    gm::modbus::handler,
+    dynamic_cast<::gos::modbus::modbus::Base&>(gm::modbus::handler),
     gm::modbus::variable,
     gm::modbus::buffer::request,
     gm::modbus::buffer::response);
@@ -448,6 +454,9 @@ void line() {
       gm::format::display::option::temperature,
       &gm::format::display::buffer::id::idle,
       &gm::format::display::buffer::unit);
+    break;
+  case gm::mode::status::coil:
+
     break;
   case gm::mode::status::manual:
     gatl::format::integer(
@@ -563,11 +572,11 @@ void create() {
      *  40013  --L--
      */
   gm::variables::temporary::address =
-  gatl::binding::barray::create<gm::type::Output, uint16_t, uint8_t>(
-    gm::binding::barray::output,
-    0,
-    gm::binding::barray::count::Output,
-    sizeof(gm::type::Output));
+    gatl::binding::barray::create<gm::type::Output, uint16_t, uint8_t>(
+      gm::binding::barray::output,
+      0,
+      gm::binding::barray::count::Output,
+      sizeof(gm::type::Output));
   gatl::binding::barray::create<gm::type::Real, uint16_t, uint8_t>(
     gm::binding::barray::real,
     gm::variables::temporary::address,
@@ -580,6 +589,9 @@ namespace eeprom {
 namespace binding {
 void read() {
   gatl::eeprom::read(gm::binding::barray::real);
+}
+void update() {
+  gatl::eeprom::update(gm::binding::barray::real);
 }
 }
 } /* End of eeprom name-space */
@@ -595,17 +607,34 @@ void initialize() {
 /* 0x01 Read Coils */
 Handler::Result gm::modbus::Handler::ReadCoils(
   const Function& function,
-  const Address& address,
+  const Address& start,
   const Length& length) {
-  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
 #ifdef GOS_TODO_UPGRADE
-  if (gatl::modbus::binding::coil::access(binding::coils, slave, address, length)) {
+  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  if (gatl::modbus::binding::coil::access(binding::coils, slave, start, length)) {
     gmvt::status = STATUS_OK;
   }
-#else
-  
-#endif
   return gmvt::status;
+#else
+  ::gos::atl::modbus::binding::result result =
+    gatl::modbus::binding::coil::access<>(
+    gm::modbus::binding::coils,
+    gm::modbus::variable,
+    gm::modbus::buffer::request,
+    gm::modbus::buffer::response,
+    start,
+    length);
+  switch (result) {
+  case ::gos::atl::modbus::binding::result::excluded:
+    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  case ::gos::atl::modbus::binding::result::failure:
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  case ::gos::atl::modbus::binding::result::included:
+    return MODBUS_STATUS_OK;
+  default:
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  }
+#endif
 }
 
 /* 0x03 Read Multiple Holding Registers */
@@ -660,10 +689,10 @@ Handler::Result gm::modbus::Handler::ReadInputRegisters(
 /* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
 Handler::Result gm::modbus::Handler::WriteCoils(
   const Function& function,
-  const Address& address,
+  const Address& start,
   const Length& length) {
-  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
 #ifdef GOS_TODO_UPGRADE
+  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   if (gatl::modbus::binding::coil::assign(
     binding::coils,
     slave,
@@ -673,8 +702,34 @@ Handler::Result gm::modbus::Handler::WriteCoils(
     gmvt::to)) {
     gmvt::status = STATUS_OK;
   }
-#endif
   return gmvt::status;
+#else
+  ::gos::modbus::mode::gotom::state(::gos::modbus::mode::status::coil);
+  uint16_t address, first, last;
+  uint8_t index;
+  ::gos::atl::modbus::binding::result result =
+    gatl::modbus::binding::coil::assign<>(
+    gm::modbus::binding::coils,
+    gm::modbus::variable,
+    gm::modbus::buffer::request,
+    gm::modbus::buffer::response,
+    start,
+    length,
+    address,
+    first,
+    last,
+    index);
+  switch (result) {
+  case ::gos::atl::modbus::binding::result::excluded:
+    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  case ::gos::atl::modbus::binding::result::failure:
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  case ::gos::atl::modbus::binding::result::included:
+    return MODBUS_STATUS_OK;
+  default:
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  }
+#endif
 }
 
 /* 0x06 Write Single and 0x10 Write Multiple Holding Registers */

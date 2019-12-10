@@ -84,7 +84,7 @@ TEST_F(ModbusPointFixture, WriteHoldingRegisters) {
     3,    // Address of Kp
     2);   // Length
 
-  EXPECT_EQ(STATUS_OK, modbusresult);
+  EXPECT_EQ(MODBUS_STATUS_OK, modbusresult);
   value = gatl::binding::barray::get(
     gm::binding::barray::real,
     gm::binding::barray::index::real::Kp);
