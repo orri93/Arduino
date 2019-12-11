@@ -74,6 +74,8 @@
 #define GOS_MP_PID_HOLDING_TI_ADDRESS  9
 #define GOS_MP_PID_HOLDING_TD_ADDRESS 11
 
+#define GOS_BARRAY_BINDING
+
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
 
@@ -131,7 +133,6 @@ bool uset = false;
 } /* End of variables name-space */
 
 namespace binding {
-namespace barray {
 namespace index {
 namespace real {
 const uint8_t Setpoint = GOS_MP_PID_HOLDING_SP_INDEX;
@@ -147,9 +148,15 @@ namespace count {
 const uint8_t Output = 1;
 const uint8_t Real = 6;
 }
+#ifdef GOS_BARRAY_BINDING
+namespace barray {
 gatl::binding::barray::reference<type::Output, uint16_t> output;
 gatl::binding::barray::reference<type::Real, uint16_t> real;
 }
+#else
+gatl::binding::reference<type::Output, uint16_t> output;
+gatl::binding::reference<type::Real, uint16_t> real;
+#endif
 void create();
 }
 
@@ -642,8 +649,8 @@ Handler::Result gm::modbus::Handler::ReadHoldingRegisters(
   const Function& function,
   const Address& address,
   const Length& length) {
-  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
 #ifdef GOS_TODO_UPGRADE
+  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   if (gatl::modbus::binding::registers::access(
     binding::holding::manual,
     slave,
@@ -658,8 +665,28 @@ Handler::Result gm::modbus::Handler::ReadHoldingRegisters(
     length)) {
     gmvt::status = STATUS_OK;
   }
-#endif
   return gmvt::status;
+#else
+  ::gos::atl::modbus::binding::result result =
+    gatl::modbus::binding::registers::access<>(
+      gm::modbus::binding::coils,
+      gm::modbus::variable,
+      gm::modbus::buffer::request,
+      gm::modbus::buffer::response,
+      start,
+      length);
+  switch (result) {
+  case ::gos::atl::modbus::binding::result::excluded:
+    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  case ::gos::atl::modbus::binding::result::failure:
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  case ::gos::atl::modbus::binding::result::included:
+    return MODBUS_STATUS_OK;
+  default:
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  }
+
+#endif
 }
 /* 0x04 Read Input Registers */
 Handler::Result gm::modbus::Handler::ReadInputRegisters(
