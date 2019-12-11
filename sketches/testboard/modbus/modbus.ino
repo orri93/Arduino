@@ -150,7 +150,7 @@ const uint8_t Real = 6;
 }
 #ifdef GOS_BARRAY_BINDING
 namespace barray {
-gatl::binding::barray::reference<type::Output, uint16_t> output;
+::gos::atl::binding::barray::reference<type::Output, uint16_t, uint8_t> output;
 gatl::binding::barray::reference<type::Real, uint16_t> real;
 }
 #else
@@ -457,7 +457,7 @@ void line() {
     gatl::format::real(
       gm::format::display::buffer::second,
       gatl::binding::barray::get<gm::type::Real, uint16_t>(
-        gm::binding::barray::real, gm::binding::barray::index::real::Setpoint),
+        gm::binding::barray::real, gm::binding::index::real::Setpoint),
       gm::format::display::option::temperature,
       &gm::format::display::buffer::id::idle,
       &gm::format::display::buffer::unit);
@@ -469,14 +469,14 @@ void line() {
     gatl::format::integer(
       gm::format::display::buffer::second,
       gatl::binding::barray::get<gm::type::Output, uint16_t>(
-        gm::binding::barray::output, gm::binding::barray::index::output),
+        gm::binding::barray::output, gm::binding::index::output),
       &gm::format::display::buffer::id::manual);
     break;
   case gm::mode::status::automatic:
     gatl::format::real(
       gm::format::display::buffer::second,
       gatl::binding::barray::get<gm::type::Real, uint16_t>(
-        gm::binding::barray::real, gm::binding::barray::index::real::Setpoint),
+        gm::binding::barray::real, gm::binding::index::real::Setpoint),
       gm::format::display::option::temperature,
       &gm::format::display::buffer::id::setpoint,
       &gm::format::display::buffer::unit);
@@ -485,7 +485,7 @@ void line() {
     gatl::format::real(
       gm::format::display::buffer::second,
       gatl::binding::barray::get<gm::type::Real, uint16_t>(
-        gm::binding::barray::real, gm::binding::barray::index::real::Kp),
+        gm::binding::barray::real, gm::binding::index::real::Kp),
       gm::format::display::option::tuning,
       &gm::format::display::buffer::id::tune::kp);
     break;
@@ -493,7 +493,7 @@ void line() {
     gatl::format::real(
       gm::format::display::buffer::second,
       gatl::binding::barray::get<gm::type::Real, uint16_t>(
-        gm::binding::barray::real, gm::binding::barray::index::real::Ki),
+        gm::binding::barray::real, gm::binding::index::real::Ki),
       gm::format::display::option::tuning,
       &gm::format::display::buffer::id::tune::ki);
     break;
@@ -501,7 +501,7 @@ void line() {
     gatl::format::real(
       gm::format::display::buffer::second,
       gatl::binding::barray::get<gm::type::Real, uint16_t>(
-        gm::binding::barray::real, gm::binding::barray::index::real::Kd),
+        gm::binding::barray::real, gm::binding::index::real::Kd),
       gm::format::display::option::tuning,
       &gm::format::display::buffer::id::tune::kd);
     break;
@@ -509,7 +509,7 @@ void line() {
     gatl::format::real(
       gm::format::display::buffer::second,
       gatl::binding::barray::get<gm::type::Real, uint16_t>(
-        gm::binding::barray::real, gm::binding::barray::index::real::Ti),
+        gm::binding::barray::real, gm::binding::index::real::Ti),
       gm::format::display::option::tuning,
       &gm::format::display::buffer::id::tune::ti);
     break;
@@ -517,7 +517,7 @@ void line() {
     gatl::format::real(
       gm::format::display::buffer::second,
       gatl::binding::barray::get<gm::type::Real, uint16_t>(
-        gm::binding::barray::real, gm::binding::barray::index::real::Td),
+        gm::binding::barray::real, gm::binding::index::real::Td),
       gm::format::display::option::tuning,
       &gm::format::display::buffer::id::tune::td);
     break;
@@ -582,12 +582,12 @@ void create() {
     gatl::binding::barray::create<gm::type::Output, uint16_t, uint8_t>(
       gm::binding::barray::output,
       0,
-      gm::binding::barray::count::Output,
+      gm::binding::count::Output,
       sizeof(gm::type::Output));
   gatl::binding::barray::create<gm::type::Real, uint16_t, uint8_t>(
     gm::binding::barray::real,
     gm::variables::temporary::address,
-    gm::binding::barray::count::Real,
+    gm::binding::count::Real,
     sizeof(gm::type::Real));
 }
 }
@@ -647,7 +647,7 @@ Handler::Result gm::modbus::Handler::ReadCoils(
 /* 0x03 Read Multiple Holding Registers */
 Handler::Result gm::modbus::Handler::ReadHoldingRegisters(
   const Function& function,
-  const Address& address,
+  const Address& start,
   const Length& length) {
 #ifdef GOS_TODO_UPGRADE
   gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
@@ -667,25 +667,34 @@ Handler::Result gm::modbus::Handler::ReadHoldingRegisters(
   }
   return gmvt::status;
 #else
-  ::gos::atl::modbus::binding::result result =
+  ::gos::atl::modbus::binding::result ro =
     gatl::modbus::binding::registers::access<>(
-      gm::modbus::binding::coils,
+      gm::binding::barray::output,
       gm::modbus::variable,
       gm::modbus::buffer::request,
       gm::modbus::buffer::response,
       start,
       length);
-  switch (result) {
-  case ::gos::atl::modbus::binding::result::excluded:
-    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  case ::gos::atl::modbus::binding::result::failure:
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
-  case ::gos::atl::modbus::binding::result::included:
+  ::gos::atl::modbus::binding::result rr =
+    gatl::modbus::binding::registers::access<>(
+      gm::binding::barray::real,
+      gm::modbus::variable,
+      gm::modbus::buffer::request,
+      gm::modbus::buffer::response,
+      start,
+      length);
+  if (ro == ::gos::atl::modbus::binding::result::included ||
+    rr == ::gos::atl::modbus::binding::result::included) {
     return MODBUS_STATUS_OK;
-  default:
+  } else if (ro == ::gos::atl::modbus::binding::result::failure ||
+    rr == ::gos::atl::modbus::binding::result::failure) {
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  } else if(ro == ::gos::atl::modbus::binding::result::excluded &&
+    rr == ::gos::atl::modbus::binding::result::excluded) {
+    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  } else {
     return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
   }
-
 #endif
 }
 /* 0x04 Read Input Registers */

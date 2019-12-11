@@ -17,7 +17,7 @@ class ModbusPointFixture: public ::testing::Test{
 public:
   void SetUp() override {
     arduinomock = arduinoMockInstance();
-    if (::gos::modbus::display::oled.U8g2 == nullptr) {
+    if (gmd::oled.U8g2 == nullptr) {
       ::gos::modbus::display::oled.U8g2 = new U8g2;
     }
     serial = serialMockInstance();
@@ -87,7 +87,7 @@ TEST_F(ModbusPointFixture, WriteHoldingRegisters) {
   EXPECT_EQ(MODBUS_STATUS_OK, modbusresult);
   value = gatl::binding::barray::get(
     gm::binding::barray::real,
-    gm::binding::barray::index::real::Kp);
+    gm::binding::index::real::Kp);
   EXPECT_FLOAT_EQ(number, value);
 
   gatl::binding::testing::clean<bool, uint16_t, uint8_t>(
