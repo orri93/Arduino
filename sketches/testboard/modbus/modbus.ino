@@ -162,35 +162,30 @@ void create();
 
 #ifdef MODBUS_BAUD
 namespace modbus {
-typedef ::gos::atl::modbus::Handler<
-  uint16_t,
-  uint16_t,
-  uint16_t,
-  uint8_t> Base;
 void initialize();
-class Handler : public virtual Base {
+class Handler : public virtual ::gos::atl::modbus::Handler<uint16_t> {
 public:
-  Result ReadCoils(
-    const Function& function,
-    const Address& address,
-    const Length& length);
-  Result ReadHoldingRegisters(
-    const Function& function,
-    const Address& address,
-    const Length& length);
-  Result ReadInputRegisters(
-    const Function& function,
-    const Address& address,
-    const Length& length);
-  Result WriteCoils(
-    const Function& function,
-    const Address& address,
-    const Length& length);
-  Result WriteHoldingRegisters(
-    const Function& function,
-    const Address& address,
-    const Length& length);
-  Result ReadExceptionStatus(const Function& function);
+  MODBUS_TYPE_RESULT ReadCoils(
+    const MODBUS_TYPE_FUNCTION& function,
+    const uint16_t& address,
+    const uint16_t& length);
+  MODBUS_TYPE_RESULT ReadHoldingRegisters(
+    const MODBUS_TYPE_FUNCTION& function,
+    const uint16_t& address,
+    const uint16_t& length);
+  MODBUS_TYPE_RESULT ReadInputRegisters(
+    const MODBUS_TYPE_FUNCTION& function,
+    const uint16_t& address,
+    const uint16_t& length);
+  MODBUS_TYPE_RESULT WriteCoils(
+    const MODBUS_TYPE_FUNCTION& function,
+    const uint16_t& address,
+    const uint16_t& length);
+  MODBUS_TYPE_RESULT WriteHoldingRegisters(
+    const MODBUS_TYPE_FUNCTION& function,
+    const uint16_t& address,
+    const uint16_t& length);
+  MODBUS_TYPE_RESULT ReadExceptionStatus(const MODBUS_TYPE_FUNCTION& function);
 };
 namespace variables {
 type::Output manual = value::zero::Output;
@@ -362,10 +357,10 @@ void loop() {
   gm::variables::tick = millis();
 
 #ifdef MODBUS_BAUD
-  gatl::modbus::loop<>(
+  gatl::modbus::loop<uint16_t>(
     Serial,
     gm::modbus::parameter,
-    dynamic_cast<::gos::modbus::modbus::Base&>(gm::modbus::handler),
+    gm::modbus::handler,
     gm::modbus::variable,
     gm::modbus::buffer::request,
     gm::modbus::buffer::response);
@@ -607,15 +602,16 @@ void update() {
 namespace modbus {
 
 void initialize() {
-  parameter.SlaveId = 1;
-  parameter.TransmissionControl = PIN_RS485_MODBUS_TE;
+  parameter.Id = 1;
+  parameter.Control = PIN_RS485_MODBUS_TE;
 }
 
 /* 0x01 Read Coils */
-Handler::Result gm::modbus::Handler::ReadCoils(
-  const Function& function,
-  const Address& start,
-  const Length& length) {
+uint8_t gm::modbus::Handler::ReadCoils(
+  const uint8_t& function,
+  const uint16_t& start,
+  const uint16_t& length) {
+
 #ifdef GOS_TODO_UPGRADE
   gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   if (gatl::modbus::binding::coil::access(binding::coils, slave, start, length)) {
@@ -645,10 +641,10 @@ Handler::Result gm::modbus::Handler::ReadCoils(
 }
 
 /* 0x03 Read Multiple Holding Registers */
-Handler::Result gm::modbus::Handler::ReadHoldingRegisters(
-  const Function& function,
-  const Address& start,
-  const Length& length) {
+uint8_t gm::modbus::Handler::ReadHoldingRegisters(
+  const uint8_t& function,
+  const uint16_t& start,
+  const uint16_t& length) {
 #ifdef GOS_TODO_UPGRADE
   gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   if (gatl::modbus::binding::registers::access(
@@ -676,7 +672,7 @@ Handler::Result gm::modbus::Handler::ReadHoldingRegisters(
       start,
       length);
   ::gos::atl::modbus::binding::result rr =
-    gatl::modbus::binding::registers::access<>(
+    gatl::modbus::binding::two::access<>(
       gm::binding::barray::real,
       gm::modbus::variable,
       gm::modbus::buffer::request,
@@ -698,12 +694,12 @@ Handler::Result gm::modbus::Handler::ReadHoldingRegisters(
 #endif
 }
 /* 0x04 Read Input Registers */
-Handler::Result gm::modbus::Handler::ReadInputRegisters(
-  const Function& function,
-  const Address& address,
-  const Length& length) {
-  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+uint8_t gm::modbus::Handler::ReadInputRegisters(
+  const uint8_t& function,
+  const uint16_t& start,
+  const uint16_t& length) {
 #ifdef GOS_TODO_UPGRADE
+  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   if (gatl::modbus::binding::registers::access(
     binding::input::output,
     slave,
@@ -718,15 +714,45 @@ Handler::Result gm::modbus::Handler::ReadInputRegisters(
     length)) {
     gmvt::status = STATUS_OK;
   }
-#endif
   return gmvt::status;
+#else
+  ::gos::atl::modbus::binding::result ro =
+    gatl::modbus::binding::registers::access<gm::type::Output>(
+      gm::modbus::binding::input::output,
+      gm::modbus::variable,
+      gm::modbus::buffer::request,
+      gm::modbus::buffer::response,
+      start,
+      length);
+  ::gos::atl::modbus::binding::result rr =
+    gatl::modbus::binding::two::access<gm::type::Real>(
+      gm::modbus::binding::input::sensor,
+      gm::modbus::variable,
+      gm::modbus::buffer::request,
+      gm::modbus::buffer::response,
+      start,
+      length);
+  if (ro == ::gos::atl::modbus::binding::result::included ||
+    rr == ::gos::atl::modbus::binding::result::included) {
+    return MODBUS_STATUS_OK;
+  } else if (ro == ::gos::atl::modbus::binding::result::failure ||
+    rr == ::gos::atl::modbus::binding::result::failure) {
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  } else if (ro == ::gos::atl::modbus::binding::result::excluded &&
+    rr == ::gos::atl::modbus::binding::result::excluded) {
+    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  } else {
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  }
+
+#endif
 }
 
 /* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
-Handler::Result gm::modbus::Handler::WriteCoils(
-  const Function& function,
-  const Address& start,
-  const Length& length) {
+uint8_t gm::modbus::Handler::WriteCoils(
+  const uint8_t& function,
+  const uint16_t& start,
+  const uint16_t& length) {
 #ifdef GOS_TODO_UPGRADE
   gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   if (gatl::modbus::binding::coil::assign(
@@ -742,7 +768,7 @@ Handler::Result gm::modbus::Handler::WriteCoils(
 #else
   ::gos::modbus::mode::gotom::state(::gos::modbus::mode::status::coil);
   uint16_t address, first, last;
-  uint8_t index;
+  uint8_t index = 0;
   ::gos::atl::modbus::binding::result result =
     gatl::modbus::binding::coil::assign<>(
     gm::modbus::binding::coils,
@@ -769,10 +795,10 @@ Handler::Result gm::modbus::Handler::WriteCoils(
 }
 
 /* 0x06 Write Single and 0x10 Write Multiple Holding Registers */
-Handler::Result gm::modbus::Handler::WriteHoldingRegisters(
-  const Function& function,
-  const Address& address,
-  const Length& length) {
+uint8_t gm::modbus::Handler::WriteHoldingRegisters(
+  const uint8_t& function,
+  const uint16_t& start,
+  const uint16_t& length) {
 #ifdef GOS_TODO_UPGRADE
   if (gatl::modbus::binding::registers::assign(
     binding::holding::manual,
@@ -866,11 +892,51 @@ Handler::Result gm::modbus::Handler::WriteHoldingRegisters(
       gm::pid::tune::apply();
     }
   }
+#else
+  uint16_t address, first, last;
+  uint8_t index = 0;
+  ::gos::atl::modbus::binding::result ro =
+    gatl::modbus::binding::registers::assign<type::Output>(
+      gm::binding::barray::output,
+      gm::modbus::variable,
+      gm::modbus::buffer::request,
+      gm::modbus::buffer::response,
+      start,
+      length,
+      address,
+      first,
+      last,
+      index);
+  ::gos::atl::modbus::binding::result rr =
+    gatl::modbus::binding::two::assign<type::Real>(
+      gm::binding::barray::real,
+      gm::modbus::variable,
+      gm::modbus::buffer::request,
+      gm::modbus::buffer::response,
+      start,
+      length,
+      address,
+      first,
+      last,
+      index);
+  if (ro == ::gos::atl::modbus::binding::result::included ||
+    rr == ::gos::atl::modbus::binding::result::included) {
+    return MODBUS_STATUS_OK;
+  } else if (ro == ::gos::atl::modbus::binding::result::failure ||
+    rr == ::gos::atl::modbus::binding::result::failure) {
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  } else if (ro == ::gos::atl::modbus::binding::result::excluded &&
+    rr == ::gos::atl::modbus::binding::result::excluded) {
+    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  } else {
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  }
+
 #endif
   return MODBUS_STATUS_OK;
 }
-Handler::Result gm::modbus::Handler::ReadExceptionStatus(
-  const Function& function) {
+MODBUS_TYPE_RESULT gm::modbus::Handler::ReadExceptionStatus(
+  const MODBUS_TYPE_FUNCTION& function) {
   return MODBUS_STATUS_OK;
 }
 namespace binding {

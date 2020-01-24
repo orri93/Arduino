@@ -9,6 +9,7 @@ option(GOS_ARDUINO_BUILD_ARDUINO_TOOLS
 option(GOS_ARDUINO_LIB_MODBUS "Build modbus library" ON)
 option(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS "Build tests" ON)
 option(GOS_ARDUINO_TOOLS "Build tools" ON)
+option(GOS_ARDUINO_BUILD_DOC "Build Documentation" OFF)
 
 set(gos_arduino_include_dir
   "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -129,6 +130,17 @@ if(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
+
+if (GOS_ARDUINO_BUILD_DOC)
+  find_package(Doxygen)
+  if(DOXYGEN_FOUND)
+     add_subdirectory(docs)
+   else ()
+    message(WARNING
+      "Doxygen needs to be installed to generate the documentation.")
+  endif ()
+endif ()
+
 
 message(STATUS "")
 message(STATUS "Arduino Folder BUILD SUMMARY")

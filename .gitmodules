@@ -96,3 +96,6 @@
 [submodule "extern/libmodbus"]
 	path = extern/libmodbus
 	url = https://github.com/orri93/libmodbus.git
+[submodule "libraries/OPC"]
+	path = libraries/OPC
+	url = git@github.com:orri93/OPC.git
