@@ -1,9 +1,14 @@
 #include <arduinosinled.h>
 
+
 #define PIN_LED_GREEN   3
 #define PIN_LED_YELLOW  4
 #define PIN_LED_BLUE    5
 #define PIN_LED_RED     6
+
+#define PIN_BUTTON_A    7
+#define PIN_BUTTON_B    8
+
 
 fds::SinLed led_green(PIN_LED_GREEN);
 fds::SinLed led_yellow(PIN_LED_YELLOW);

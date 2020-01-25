@@ -6,9 +6,8 @@
 #include <Arduino.h>
 
 #include <EEPROM.h>
-#include <SPI.h>
 
-#include <testboard/modbus/modbus.ino>
+#include <testboard/modbus/modbus.cpp>
 
 namespace gm = ::gos::modbus;
 namespace gmd = ::gos::modbus::display;
@@ -22,11 +21,9 @@ public:
     }
     serial = serialMockInstance();
     eeprom = EEPROMMockInstance();
-    spi = spiMockInstance();
   }
 
   void TearDown() override {
-    releaseSpiMock();
     releaseEEPROMMock();
     releaseSerialMock();
     releaseArduinoMock();
@@ -39,7 +36,6 @@ public:
   ArduinoMock* arduinomock;
   HardwareSerialMock* serial;
   EEPROMMock* eeprom;
-  SpiMock* spi;
 
   std::mutex mutex;
 };
@@ -48,7 +44,6 @@ TEST_F(ModbusPointFixture, Setup) {
   EXPECT_CALL(*(gmd::oled.U8g2), begin()).
     Times(testing::AtLeast(1));
   EXPECT_CALL(*arduinomock, pinMode).Times(testing::AtLeast(4));
-  EXPECT_CALL(*spi, begin).Times(testing::Exactly(1));
   EXPECT_CALL(*arduinomock, digitalWrite).Times(testing::AtLeast(1)); // Max6675
   EXPECT_CALL(*serial, begin(MODBUS_BAUD)).Times(testing::Exactly(1));
   EXPECT_CALL(*arduinomock, delay).Times(testing::AtLeast(1));
