@@ -259,22 +259,6 @@ void loop() {
     gm::format::display::crc::last::second = uint16;
   }
 
-  if (gm::timer::cycle.is(gmv::tick)) {
-    gm::display::update::second::line();
-    gm::sensor::read();
-    if (gm::mode::state == gm::mode::status::automatic) {
-      gm::variables::output = static_cast<gm::type::Output>(
-        gm::variables::tick % 255);
-    }
-  }
-
-#ifndef MODBUS_BAUD
-  Serial.print(gmv::temperature);
-  Serial.print(",");
-  Serial.print(gm::variables::output);
-  Serial.println();
-#endif
-
 #ifndef NO_DISPLAY
   if (gm::display::updated) {
     gm::display::twoline.display(
@@ -292,39 +276,6 @@ namespace modbus {
 
 namespace display {
 } /* End of display name-space */
-
-namespace sensor {
-void read() {
-  error::message = nullptr;
-  if (max6675.read(value)) {
-    if (::gos::sensor::range::check(
-      value,
-      SENSOR_MINIMUM,
-      SENSOR_MAXIMUM) == GOS_SENSOR_STATUS_OK) {
-      gmv::temperature = static_cast<gm::type::Real>(value);
-    } else {
-      error::message = ::gos::sensor::error(error::length);
-    }
-  } else {
-    error::message = max6675.error(error::length);
-  }
-  if (gm::sensor::error::message == nullptr) {
-    gatl::format::real(
-      gm::format::display::buffer::first,
-      gmv::temperature,
-      gm::format::display::option::temperature,
-      &gm::format::display::buffer::id::temperature,
-      &gm::format::display::buffer::unit);
-  } else {
-    gatl::format::message(
-      gm::format::display::buffer::first,
-      gm::sensor::error::message,
-      gm::sensor::error::length,
-      &gm::format::display::buffer::id::temperature);
-  }
-  gm::display::updated = true;
-}
-} /* End of sensor name-space */
 
 namespace binding {
 void create() {
