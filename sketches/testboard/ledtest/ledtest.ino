@@ -29,8 +29,4 @@ void setup() {
 }
 
 void loop() {
-  led_green.cycle();
-  led_yellow.cycle();
-  led_blue.cycle();
-  led_red.cycle();
 }
