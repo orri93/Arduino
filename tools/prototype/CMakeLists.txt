@@ -1,0 +1,3 @@
+add_subdirectory(audiolevels)
+add_subdirectory(qmloscilloscope)
+add_subdirectory(qmloscilloscopechart)
