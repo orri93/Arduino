@@ -7,7 +7,7 @@
 
 #include <EEPROM.h>
 
-#include <testboard/modbus/modbus.cpp>
+#include <testboard/simple/modbus/modbus.ino>
 
 namespace gm = ::gos::modbus;
 namespace gmd = ::gos::modbus::display;
@@ -66,6 +66,7 @@ TEST_F(ModbusPointFixture, Loop) {
   loop();
 }
 
+#ifdef GOS_DISAPLED
 TEST_F(ModbusPointFixture, WriteHoldingRegisters) {
   uint8_t modbusresult;
   ::gos::modbus::modbus::binding::create();
@@ -80,7 +81,7 @@ TEST_F(ModbusPointFixture, WriteHoldingRegisters) {
     2);   // Length
 
   EXPECT_EQ(MODBUS_STATUS_OK, modbusresult);
-  value = gatl::binding::barray::get(
+  value = gatl::binding::barray::get<>(
     gm::binding::barray::real,
     gm::binding::index::real::Kp);
   EXPECT_FLOAT_EQ(number, value);
@@ -93,4 +94,4 @@ TEST_F(ModbusPointFixture, WriteHoldingRegisters) {
   gatl::binding::testing::clean<gm::type::Real, uint16_t, uint8_t>(
     gm::modbus::binding::input::sensor);
 }
-
+#endif

@@ -21,6 +21,8 @@
 #include <gatlformat.h>
 #endif
 
+#define GOS_MODBUS_DO_NOTHING
+
 #define PIN_RS485_MODBUS_RX                  0
 #define PIN_RS485_MODBUS_TX                  1
 #define PIN_RS485_MODBUS_TE                  2
@@ -65,7 +67,7 @@ const type::Real Real = 0.0F;
 const type::Signed Signed = 0;
 const type::Unsigned Unsigned = 0;
 }
-}
+} /* End of value name-space */
 
 namespace variables {
 namespace real {
@@ -85,15 +87,6 @@ type::Real real;
 }
 
 namespace binding {
-namespace index {
-namespace real {
-const uint8_t First = 1;
-const uint8_t Second = 2;
-}
-}
-namespace count {
-const uint8_t Real = 2;
-}
 #ifdef GOS_BARRAY_BINDING
 namespace barray {
 gatl::binding::barray::reference<
@@ -137,27 +130,6 @@ public:
 };
 
 namespace binding {
-namespace count {
-const uint8_t Coil = 1;
-namespace input {
-const uint8_t Output = 1;
-const uint8_t Sensor = 1;
-}
-}
-namespace index {
-namespace coil {
-const uint8_t UseT = 0;
-}
-namespace input {
-const uint8_t Output = 0;
-const uint8_t Temperature = 0;
-}
-}
-gatl::binding::reference<bool, uint16_t> coils;
-namespace input {
-gatl::binding::reference<type::Output, uint16_t> output;
-gatl::binding::reference<::gos::modbus::type::Real, uint16_t> sensor;
-}
 void create();
 } /* End of modbus binding name-space */
 namespace buffer {
@@ -200,13 +172,8 @@ namespace eeprom {
 namespace binding {
 namespace integer {
 namespace index {
-const uint8_t Coils = 0;
-const uint8_t BluePwmA = 1;
-const uint8_t BluePwmB = 2;
 }
-const uint8_t Count = 3;
 }
-gatl::binding::reference<uint8_t, int> integer;
 void read();
 void update();
 }
@@ -229,6 +196,18 @@ void setup() {
   gm::binding::create();
   gm::modbus::binding::create();
   gme::binding::read();
+
+  pinMode(PIN_LED_RED_A, OUTPUT);
+  pinMode(PIN_LED_RED_B, OUTPUT);
+
+  pinMode(PIN_LED_BLUE_A, OUTPUT);
+  pinMode(PIN_LED_BLUE_B, OUTPUT);
+
+  pinMode(PIN_LED_GREEN, OUTPUT);
+  pinMode(PIN_LED_YELLOW, OUTPUT);
+
+  pinMode(PIN_BUTTON_A, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_B, INPUT_PULLUP);
 
 #ifndef NO_DISPLAY
   gmd::oled.U8g2->begin();
@@ -254,8 +233,8 @@ void setup() {
     gatl::utility::crc::calculate<>(gm::format::display::buffer::second);
 }
 
+
 void loop() {
-  gm::variables::tick = millis();
 
   gm::potentiometer::value = analogRead(PIN_POTENTIOMETER);
   gm::potentiometer::real = (gm::type::Real)(gm::potentiometer::value)/1023.0F;
@@ -270,15 +249,20 @@ void loop() {
     gm::modbus::buffer::response);
 #endif
 
-  uint16 = gatl::utility::crc::calculate<>(gm::format::display::buffer::first);
-  if (uint16 != gm::format::display::crc::last::first) {
+  gm::variables::temporary::integer =
+    gatl::utility::crc::calculate<>(gm::format::display::buffer::first);
+  if (
+    gm::variables::temporary::integer !=
+    gm::format::display::crc::last::first) {
     gm::display::updated = true;
-    gm::format::display::crc::last::first = uint16;
+    gm::format::display::crc::last::first = gm::variables::temporary::integer;
   }
-  uint16 = gatl::utility::crc::calculate<>(gm::format::display::buffer::second);
-  if (uint16 != gm::format::display::crc::last::second) {
+  gm::variables::temporary::integer =
+    gatl::utility::crc::calculate<>(gm::format::display::buffer::second);
+  if (gm::variables::temporary::integer !=
+    gm::format::display::crc::last::second) {
     gm::display::updated = true;
-    gm::format::display::crc::last::second = uint16;
+    gm::format::display::crc::last::second = gm::variables::temporary::integer;
   }
 
 #ifndef NO_DISPLAY
@@ -301,47 +285,20 @@ namespace display {
 
 namespace binding {
 void create() {
-  /*
-     *  40001  Manual     (0x0000)
-     *  40002  Setpoint   (0x0001)
-     *  40003  --L--
-     *  40004  Kp         (0x0003)
-     *  40005  --L--
-     *  40006  Ki         (0x0005)
-     *  40007  --L--
-     *  40008  Kd         (0x0007)
-     *  40009  --L--
-     *  40010  Ti         (0x0009)
-     *  40011  --L--
-     *  40012  Td         (0x000b)
-     *  40013  --L--
-     */
-  gm::variables::temporary::address =
-    gatl::binding::barray::create<gm::type::Output, uint16_t, uint8_t>(
-      gm::binding::barray::output,
-      0,
-      gm::binding::count::Output,
-      sizeof(gm::type::Output));
-  gatl::binding::barray::create<gm::type::Real, uint16_t, uint8_t>(
-    gm::binding::barray::real,
-    gm::variables::temporary::address,
-    gm::binding::count::Real,
-    sizeof(gm::type::Real));
 }
 }
 
 namespace eeprom {
 namespace binding {
 void read() {
-  gatl::eeprom::read(gm::binding::barray::real);
+  //gatl::eeprom::read(gm::binding::barray::real);
 }
 void update() {
-  gatl::eeprom::update(gm::binding::barray::real);
+  //gatl::eeprom::update(gm::binding::barray::real);
 }
 }
 } /* End of eeprom name-space */
 
-#ifdef MODBUS_BAUD
 namespace modbus {
 
 void initialize() {
@@ -355,12 +312,8 @@ uint8_t gm::modbus::Handler::ReadCoils(
   const uint16_t& start,
   const uint16_t& length) {
 
-#ifdef GOS_TODO_UPGRADE
-  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::binding::coil::access(binding::coils, slave, start, length)) {
-    gmvt::status = STATUS_OK;
-  }
-  return gmvt::status;
+#ifdef GOS_MODBUS_DO_NOTHING
+  return MODBUS_STATUS_OK;
 #else
   ::gos::atl::modbus::binding::result result =
     gatl::modbus::binding::coil::access<>(
@@ -388,33 +341,28 @@ uint8_t gm::modbus::Handler::ReadDiscretes(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
-
-#ifdef GOS_TODO_UPGRADE
-  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::binding::coil::access(binding::coils, slave, start, length)) {
-    gmvt::status = STATUS_OK;
-  }
-  return gmvt::status;
-#else
-  ::gos::atl::modbus::binding::result result =
-    gatl::modbus::binding::coil::access<>(
-      gm::modbus::binding::coils,
+  uint8_t result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  if(gatl::utility::range::ismemberof<uint16_t>(0x0000, start, length)) {
+    if ((result = gatl::modbus::provide::discrete<uint16_t>(
       gm::modbus::variable,
       gm::modbus::buffer::request,
       gm::modbus::buffer::response,
-      start,
-      length);
-  switch (result) {
-  case ::gos::atl::modbus::binding::result::excluded:
-    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  case ::gos::atl::modbus::binding::result::failure:
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
-  case ::gos::atl::modbus::binding::result::included:
-    return MODBUS_STATUS_OK;
-  default:
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+      0x0000,
+      digitalRead(PIN_BUTTON_A) == LOW)) != MODBUS_STATUS_OK) {
+      return result;
+    }
   }
-#endif
+  if (gatl::utility::range::ismemberof<uint16_t>(0x0001, start, length)) {
+    if ((result = gatl::modbus::provide::discrete<uint16_t>(
+      gm::modbus::variable,
+      gm::modbus::buffer::request,
+      gm::modbus::buffer::response,
+      0x0001,
+      digitalRead(PIN_BUTTON_B) == LOW)) != MODBUS_STATUS_OK) {
+      return result;
+    }
+  }
+  return result;
 }
 
 /* 0x03 Read Multiple Holding Registers */
@@ -422,23 +370,9 @@ uint8_t gm::modbus::Handler::ReadHoldingRegisters(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
-#ifdef GOS_TODO_UPGRADE
-  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::binding::registers::access(
-    binding::holding::manual,
-    slave,
-    startaddress,
-    length)) {
-    gmvt::status = STATUS_OK;
-  }
-  if (gatl::modbus::binding::two::access(
-    binding::holding::pid,
-    slave,
-    startaddress,
-    length)) {
-    gmvt::status = STATUS_OK;
-  }
-  return gmvt::status;
+#ifdef GOS_MODBUS_DO_NOTHING
+  return MODBUS_STATUS_OK;
+
 #else
   ::gos::atl::modbus::binding::result ro =
     gatl::modbus::binding::registers::access<>(
@@ -475,6 +409,9 @@ MODBUS_TYPE_RESULT gm::modbus::Handler::ReadInputRegisters(
   const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
+#ifdef GOS_MODBUS_DO_NOTHING
+  return MODBUS_STATUS_OK;
+#else
   ::gos::atl::modbus::binding::result ro =
     gatl::modbus::binding::registers::access<gm::type::Output>(
       gm::modbus::binding::input::output,
@@ -503,6 +440,7 @@ MODBUS_TYPE_RESULT gm::modbus::Handler::ReadInputRegisters(
   } else {
     return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
   }
+#endif
 }
 
 /* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
@@ -510,18 +448,8 @@ uint8_t gm::modbus::Handler::WriteCoils(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
-#ifdef GOS_TODO_UPGRADE
-  gmvt::status = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  if (gatl::modbus::binding::coil::assign(
-    binding::coils,
-    slave,
-    startaddress,
-    length,
-    gmvt::index,
-    gmvt::to)) {
-    gmvt::status = STATUS_OK;
-  }
-  return gmvt::status;
+#ifdef GOS_MODBUS_DO_NOTHING
+  return MODBUS_STATUS_OK;
 #else
   ::gos::modbus::mode::gotom::state(::gos::modbus::mode::status::coil);
   uint16_t address, first, last;
@@ -556,99 +484,8 @@ uint8_t gm::modbus::Handler::WriteHoldingRegisters(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
-#ifdef GOS_TODO_UPGRADE
-  if (gatl::modbus::binding::registers::assign(
-    binding::holding::manual,
-    slave,
-    startaddress,
-    length,
-    gmvt::index,
-    gmvt::to)) {
-    gmvt::status = STATUS_OK;
-    while (gmvt::index < gmvt::to) {
-      if (gmvt::index == binding::index::holding::Manual) {
-        if (gatl::utility::range::isinside(
-          variables::manual,
-          gm::variables::range::output)) {
-          if (gatlu::changed::apply::is<type::Output>(
-            variables::manual,
-            variables::last::manual)) {
-            heater::manual = variables::manual;
-            if (gm::mode::is::unequal(mode::status::manual)) {
-              mode::gotom::state(mode::status::manual);
-            }
-          }
-        } else {
-          return STATUS_ILLEGAL_DATA_VALUE;
-        }
-      }
-      gmvt::index++;
-    }
-  }
-  if (gatl::modbus::binding::two::assign(
-    binding::holding::pid,
-    slave,
-    startaddress,
-    length,
-    gmvt::index,
-    gmvt::to)) {
-    gmvt::status = STATUS_OK;
-    gm::variables::temporary::is = false;
-    while (gmvt::index < gmvt::to) {
-      if (gatl::binding::change::is(binding::holding::pid, gmvt::index)) {
-        switch (gmvt::index) {
-        case GOS_MP_PID_HOLDING_SP_INDEX:
-          if (gatl::utility::range::isinside(
-            variables::setpoint,
-            gm::variables::range::setpoint)) {
-            if (gatlu::changed::apply::is<type::Real>(
-              variables::setpoint,
-              variables::last::setpoint)) {
-              pid::parameter.Setpoint = variables::setpoint;
-              if (gm::mode::is::unequal(mode::status::automatic)) {
-                mode::gotom::state(mode::status::automatic);
-              }
-            }
-          } else {
-            return STATUS_ILLEGAL_DATA_VALUE;
-          }
-          break;
-        case GOS_MP_PID_HOLDING_KP_INDEX:
-          gm::variables::temporary::is = true;
-          gm::mode::gotom::state(gm::mode::status::kp);
-          break;
-        case GOS_MP_PID_HOLDING_KI_INDEX:
-          if (!gm::variables::options::uset) {
-            gm::variables::temporary::is = true;
-            gm::mode::gotom::state(gm::mode::status::ki);
-          }
-          break;
-        case GOS_MP_PID_HOLDING_KD_INDEX:
-          if (!gm::variables::options::uset) {
-            gm::variables::temporary::is = true;
-            gm::mode::gotom::state(gm::mode::status::kd);
-          }
-          break;
-        case GOS_MP_PID_HOLDING_TI_INDEX:
-          if (gm::variables::options::uset) {
-            gm::variables::temporary::is = true;
-            gm::mode::gotom::state(gm::mode::status::ti);
-          }
-          break;
-        case GOS_MP_PID_HOLDING_TD_INDEX:
-          if (gm::variables::options::uset) {
-            gm::variables::temporary::is = true;
-            gm::mode::gotom::state(gm::mode::status::td);
-          }
-          break;
-        }
-      }
-      gmvt::index++;
-    }
-    if (gm::variables::temporary::is) {
-      gm::pid::tune::apply();
-    }
-  }
+#ifdef GOS_MODBUS_DO_NOTHING
+  return MODBUS_STATUS_OK;
 #else
   uint16_t address, first, last;
   uint8_t index = 0;
@@ -697,53 +534,10 @@ MODBUS_TYPE_RESULT gm::modbus::Handler::ReadExceptionStatus(
   return MODBUS_STATUS_OK;
 }
 namespace binding {
-namespace size {
-const uint8_t Output = 1;
-const uint8_t Real = 2;
-}
 void create() {
-  /*
-   *  00001  Use T tuning values
-   *
-   */
-  gmvt::address = gatl::binding::create<bool, uint16_t, uint8_t>(
-    binding::coils,
-    0,
-    binding::count::Coil,
-    1);
-  gatl::binding::set<bool, uint16_t, uint8_t>(
-    binding::coils,
-    index::coil::UseT,
-    &gm::variables::options::uset);
-
-  /*
-   *  30001  Output from PID
-   *  30002  Temperature
-   *  30003  --L--
-   */
-  gmvt::address = gatl::binding::create<gm::type::Output, uint16_t, uint8_t>(
-    binding::input::output,
-    0,
-    binding::count::input::Output,
-    size::Output);
-  gatl::binding::set<gm::type::Output, uint16_t, uint8_t>(
-    binding::input::output,
-    index::input::Output,
-    &gm::variables::output);
-
-  gmvt::address = gatl::binding::create<gm::type::Real, uint16_t, uint8_t>(
-    binding::input::sensor,
-    gmvt::address,
-    binding::count::input::Sensor,
-    size::Real);
-  gatl::binding::set<gm::type::Real, uint16_t, uint8_t>(
-    binding::input::sensor,
-    index::input::Temperature,
-    &gm::variables::temperature);
 }
 }
 } /* End of modbus name-space */
-#endif
 
 }
 }
