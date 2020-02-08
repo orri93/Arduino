@@ -3,31 +3,46 @@
 
 #include <string>
 
-#define MODBUS_DEFAULT_SLAVE_ID 1
-#define MODBUS_RTU_DEFAULT_SERIAL_PORT "COM11"
-#define MODBUS_RTU_DEFAULT_BAUD 9600
+#include <gos/arduino/tools/types.h>
+
+#ifndef DEFAULT_SERIAL_PORT
+#ifdef WIN32
+#define DEFAULT_SERIAL_PORT "COM11"
+#else
+#define DEFAULT_SERIAL_PORT "/dev/ttyS0"
+#endif
+#endif
+#ifndef DEFAULT_BAUD
+#define DEFAULT_BAUD 9600
+#endif
 
 namespace gos {
 namespace arduino {
 namespace tools {
 namespace default {
 
-extern const int Interval;
+  namespace communication {
+  namespace serial {
+  extern const char* Port;
+  extern const int Baud;
+  } // namespace serial
+  } // namespace communication
 
-namespace slave {
-extern const int Id;
-}
-namespace serial {
-extern const int Baud;
-extern const char* Port;
-namespace string {
-extern const std::string Port;
-}
-}
+  namespace slave {
+  extern const int Id;
+  } // namespace slave
 
-}
-}
-}
-}
+  namespace timing {
+  namespace interval {
+  namespace milliseconds {
+  extern const int Loop;
+  } // namespace milliseconds
+  } // namespace interval
+  } // namespace timing
+
+} // namespace default
+} // namespace tools
+} // namespace arduino 
+} // namespace gos
 
 #endif

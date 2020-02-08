@@ -1,11 +1,12 @@
-#ifndef GOS_ARDUINO_TOOL_EXCEPTION_H_
-#define GOS_ARDUINO_TOOL_EXCEPTION_H_
+#ifndef GOS_ARDUINO_TEST_TOOL_EXCEPTION_H_
+#define GOS_ARDUINO_TEST_TOOL_EXCEPTION_H_
 
 #include <string>
 #include <exception>
 
 namespace gos {
 namespace arduino {
+namespace test {
 namespace tools {
 
 class exception : public std::exception {
@@ -19,8 +20,9 @@ public:
 private:
   std::string what_;
 };
-}
-}
-}
+} // namespace tools
+} // namespace test
+} // namespace arduino 
+} // namespace gos
 
 #endif

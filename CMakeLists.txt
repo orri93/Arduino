@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8.2)
 
-project(ArduinoFolder VERSION 1.0
+project(ArduinoFolder VERSION 1.0.0.0
   DESCRIPTION "GOS Arduino folder"
   LANGUAGES C CXX ASM)
 
@@ -9,6 +9,7 @@ option(GOS_ARDUINO_BUILD_ARDUINO_TOOLS
 option(GOS_ARDUINO_LIB_MODBUS "Build modbus library" ON)
 option(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS "Build tests" ON)
 option(GOS_ARDUINO_TOOLS "Build tools" ON)
+option(GOS_ARDUINO_TEST_TOOLS "Build test tools" ON)
 option(GOS_ARDUINO_BUILD_DOC "Build Documentation" OFF)
 
 set(gos_arduino_include_dir
@@ -19,6 +20,17 @@ set(gos_arduino_sketches_dir
 
 #set(gos_arduino_libraries_dir
 #  "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
+
+set(gos_arduino_test_tools_version_configure_file
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/version.h.in")
+configure_file(
+  "${gos_arduino_test_tools_version_configure_file}"
+  "include/gos/arduino/test/tools/version.h"
+  @ONLY)
+set(gos_arduino_test_tools_version_include_file
+  "${CMAKE_CURRENT_BINARY_DIR}/include/gos/arduino/test/tools/version.h")
+set(gos_arduino_binary_include
+  "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 list(APPEND gos_arduino_sketches_unit_testing_src
   "${CMAKE_CURRENT_SOURCE_DIR}/tests/maxsensors.cpp")
@@ -96,6 +108,45 @@ if (GOS_ARDUINO_TOOLS)
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/text.h")
 endif ()
 
+if (GOS_ARDUINO_TEST_TOOLS)
+  set(gos_build_dependency_boost ON)
+  set(libgosarduinotesttools_target libgosarduinotesttools)
+  set(arduinomodbusslave_lib libarduinomodbusslave)
+  list(APPEND gos_arduino_boost_package
+    program_options
+    log_setup
+    regex
+    log)
+  list(APPEND libgosarduinotesttools_libraries
+    ${libgosarduinotesttools_target}
+    ${arduinomodbusslave_lib}
+    Boost::program_options
+    Boost::filesystem
+    Boost::date_time
+    Boost::log_setup
+    Boost::regex
+    Boost::log)
+  list(APPEND arduinomodbusslave_include
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/arduino")
+  list(APPEND libgosarduinotesttools_include
+    "${CMAKE_CURRENT_SOURCE_DIR}/gos/ArduinoUnitTesting/extern/libraries/ArduinoModbusSlave/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/gos/ArduinoUnitTesting/sublibraries/arduinotemplates/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/arduino"
+    "${gos_arduino_binary_include}"
+    "${gos_arduino_include_dir}")
+  list(APPEND libgosarduinotesttools_public_header
+    "${gos_arduino_test_tools_version_include_file}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/exception.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/options.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/setting.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/default.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/types.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/test/tools/text.h")
+endif ()
+
+add_subdirectory(gos/ArduinoUnitTesting/extern/libraries/ArduinoModbusSlave)
+
 if (gos_build_dependency_boost)
   set(Boost_USE_MULTITHREADED        ON)
   set(Boost_USE_STATIC_RUNTIME      OFF)
@@ -110,11 +161,19 @@ if (gos_build_dependency_boost)
     date_time
     filesystem)
 
+  list(REMOVE_DUPLICATES gos_arduino_boost_package)
+
   find_package(Boost 1.71 COMPONENTS REQUIRED
     ${gos_arduino_boost_package})
 
-  list(APPEND libgosarduinotools_include
-    ${Boost_INCLUDE_DIRS})
+  if (GOS_ARDUINO_TOOLS)
+    list(APPEND libgosarduinotools_include
+      ${Boost_INCLUDE_DIRS})
+  endif ()
+  if (GOS_ARDUINO_TEST_TOOLS)
+    list(APPEND libgosarduinotesttools_include
+      ${Boost_INCLUDE_DIRS})
+  endif ()
 endif ()
 
 if (GOS_ARDUINO_TOOLS)
@@ -126,8 +185,10 @@ if (GOS_ARDUINO_BUILD_ARDUINO_TOOLS)
   add_subdirectory(gos/ArduinoTools)
 endif ()
 
-if(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS)
-  enable_testing()
+if(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS OR GOS_ARDUINO_TEST_TOOLS)
+  if(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS)
+    enable_testing()
+  endif()
   add_subdirectory(tests)
 endif()
 

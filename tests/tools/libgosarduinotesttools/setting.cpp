@@ -9,11 +9,11 @@
 #include <modbus.h>
 #endif
 
-#include <gos/arduino/tools/setting.h>
-#include <gos/arduino/tools/exception.h>
-#include <gos/arduino/tools/default.h>
-#include <gos/arduino/tools/types.h>
-#include <gos/arduino/tools/text.h>
+#include <gos/arduino/test/tools/setting.h>
+#include <gos/arduino/test/tools/exception.h>
+#include <gos/arduino/test/tools/default.h>
+#include <gos/arduino/test/tools/types.h>
+#include <gos/arduino/test/tools/text.h>
 
 #ifdef NOV_USE_BOOST_MAKE_UNIQUE
 namespace mu = ::boost;
@@ -21,41 +21,47 @@ namespace mu = ::boost;
 namespace mu = ::std;
 #endif
 
-namespace gat = ::gos::arduino::tools;
-namespace gatt = ::gos::arduino::tools::text;
+namespace gatt = ::gos::arduino::test::tools;
+namespace gattt = ::gos::arduino::test::tools::text;
 
 namespace gos {
 namespace arduino {
+namespace test {
 namespace tools {
 namespace setting {
 
-gat::types::level verbosity = gat::types::level::normal;
+gatt::types::level verbosity = gatt::default::Verbosity;
 
 namespace communication {
 namespace serial {
-std::string port = gat::default::communication::serial::Port;
-int baud = gat::default::communication::serial::Baud;
+std::string port = gatt::default::communication::serial::Port;
+int baud = gatt::default::communication::serial::Baud;
+namespace data {
+int bits = gatt::default::communication::serial::data::Bits;
+} // namespace data
+namespace stop {
+int bits = gatt::default::communication::serial::stop::Bits;
+} // namespace stop
+char parity = gatt::default::communication::serial::Parity;
 } // namespace serial
 } // namespace communication
 
-namespace slave {
-int id = gat::default::slave::Id;
-} // namespace slave
 
 namespace timing {
 namespace interval {
 namespace milliseconds {
-int loop = gat::default::timing::interval::milliseconds::Loop;
+int loop = gatt::default::timing::interval::milliseconds::Loop;
 } // namespace milliseconds
 } // namespace interval
 } // namespace timing
 
+
 void create() {
 }
 
-bool issilent() { return verbosity == gat::types::level::silent; }
-bool isnormal() { return verbosity != gat::types::level::silent; }
-bool isverbose() { return verbosity == gat::types::level::verbose; }
+bool issilent() { return verbosity == gatt::types::level::silent; }
+bool isnormal() { return verbosity != gatt::types::level::silent; }
+bool isverbose() { return verbosity == gatt::types::level::verbose; }
 
 namespace configuration {
 namespace file {
@@ -82,12 +88,12 @@ bool check(std::string& filename, const char* name) {
   details::last_error_ = errstrm.str();
   return false;
 }
-} // namespace details
+}
 
 bool apply(const std::string& configurationfilename) {
   details::configuration_file_name_ = configurationfilename;
   std::stringstream errstrm;
-  if (details::check(details::configuration_file_name_, gatt::Configuration)) {
+  if (details::check(details::configuration_file_name_, gattt::Configuration)) {
     details::configuration_stream_ =
       mu::make_unique<std::ifstream>(details::configuration_file_name_);
     if (details::configuration_stream_) {
@@ -120,7 +126,7 @@ std::ifstream& stream() {
   if (details::configuration_stream_) {
     return *(details::configuration_stream_);
   } else {
-    throw ::gos::arduino::tools::exception(
+    throw ::gos::arduino::test::tools::exception(
       "Configuration file stream is undefined");
   }
 }
@@ -132,7 +138,9 @@ bool iswithfile() {
 } // namespace file
 } // namespace configuration
 
+
 } // namespace setting
 } // namespace tools
+} // namespace test
 } // namespace arduino 
 } // namespace gos

@@ -1,27 +1,29 @@
-#ifndef GOS_ARDUINO_TOOL_SETTINGS_H_
-#define GOS_ARDUINO_TOOL_SETTINGS_H_
+#ifndef GOS_ARDUINO_TEST_TOOL_SETTINGS_H_
+#define GOS_ARDUINO_TEST_TOOL_SETTINGS_H_
 
-#include <boost/program_options.hpp>
-
-#include <gos/arduino/tools/types.h>
+#include <gos/arduino/test/tools/types.h>
 
 namespace gos {
 namespace arduino {
+namespace test {
 namespace tools {
 namespace setting {
 
-extern ::gos::arduino::tools::types::level verbosity;
+extern ::gos::arduino::test::tools::types::level verbosity;
 
 namespace communication {
 namespace serial {
 extern std::string port;
 extern int baud;
+namespace data {
+extern int bits;
+} // namespace data
+namespace stop {
+extern int bits;
+} // namespace stop
+extern char parity;
 } // namespace serial
 } // namespace communication
-
-namespace slave {
-extern int id;
-} // namespace slave
 
 namespace timing {
 namespace interval {
@@ -50,6 +52,7 @@ bool iswithfile();
 
 } // namespace setting
 } // namespace tools
+} // namespace test
 } // namespace arduino 
 } // namespace gos
 

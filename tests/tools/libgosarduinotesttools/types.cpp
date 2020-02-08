@@ -1,9 +1,10 @@
 #include <utility>
 
-#include <gos/arduino/tools/types.h>
+#include <gos/arduino/test/tools/types.h>
 
 namespace gos {
 namespace arduino {
+namespace test {
 namespace tools {
 namespace types {
 
@@ -67,5 +68,6 @@ std::string ndb::type::status::from(const bus& state, const bool& firstcapital) 
 
 } // namespace types
 } // namespace tools
+} // namespace test
 } // namespace arduino 
 } // namespace gos

@@ -49,16 +49,15 @@ const char* Name = gattcf::Communication;
 void create(po::options_description& description) {
   description.add_options()
     (gatt::option::composite::SerialPort,
-      po::value(&(gats::communication::serialport))
-      ->default_value(gat::default::serial::string::Port),
+      po::value(&(gats::communication::serial::port))
+      ->default_value(gat::default::communication::serial::Port),
       gatt::option::description::SerialPort)
     (gatt::option::composite::SerialBaud,
-      po::value(&(gats::communication::serialbaud))
-      ->default_value(gat::default::serial::Baud),
+      po::value(&(gats::communication::serial::baud))
+      ->default_value(gat::default::communication::serial::Baud),
       gatt::option::description::SerialBaud)
     (gatt::option::composite::SlaveId,
-      po::value(&(gats::communication::slave_id))
-      ->default_value(gat::default::slave::Id),
+      po::value(&(gats::slave::id)) ->default_value(gat::default::slave::Id),
       gatt::option::description::SlaveId);
 }
 }
@@ -115,9 +114,9 @@ bool version(
 
 void verbosity(::boost::program_options::variables_map& map) {
   if (map.count(gatt::Quiet) || map.count(gatt::Silent)) {
-    gats::verbosity = gats::level::silent;
+    gats::verbosity = gat::types::level::silent;
   } else if (map.count(gatt::Verbose)) {
-    gats::verbosity = gats::level::verbose;
+    gats::verbosity = gat::types::level::verbose;
   }
 }
 

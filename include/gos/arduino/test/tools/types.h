@@ -1,10 +1,18 @@
-#ifndef GOS_ARDUINO_TOOL_TYPES_H_
-#define GOS_ARDUINO_TOOL_TYPES_H_
+#ifndef GOS_ARDUINO_TEST_TOOL_TYPES_H_
+#define GOS_ARDUINO_TEST_TOOL_TYPES_H_
 
+/* For uint16_t        */
 #include <cstdint>
 
+/* For std::string     */
 #include <string>
+/* For std::pair       */
 #include <utility>
+/* For std::unique_ptr */
+#include <memory>
+
+#include <chrono>
+
 
 #ifdef NOT_USED
 #undef NOT_USED
@@ -12,14 +20,31 @@
 
 namespace gos {
 namespace arduino {
+namespace test {
 namespace tools {
 namespace types {
+
+typedef std::unique_ptr<char[]> TextPointer;
 
 enum class level {
   silent,
   normal,
   verbose
 };
+
+namespace steady {
+typedef std::chrono::steady_clock Clock;
+typedef Clock::duration Duration;
+typedef Clock::time_point Time;
+}
+
+namespace high {
+namespace resolution {
+typedef std::chrono::high_resolution_clock Clock;
+typedef Clock::duration Duration;
+typedef Clock::time_point Time;
+}
+}
 
 #ifdef GOS_NOT_YET_USED
 namespace status {
@@ -38,6 +63,8 @@ bool isempty(const endpoint& endpoint);
 
 } // namespace types
 } // namespace tools
+} // namespace test
 } // namespace arduino 
 } // namespace gos
+
 #endif

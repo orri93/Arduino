@@ -1,9 +1,10 @@
 #include <strstream>
 
-#include <gos/arduino/tools/exception.h>
+#include <gos/arduino/test/tools/exception.h>
 
 namespace gos {
 namespace arduino {
+namespace test {
 namespace tools {
 exception::exception(const char* what) {
   std::strstream s;
@@ -16,5 +17,6 @@ const char* exception::what() const noexcept { return what_.c_str(); }
 const char* exception::what() const { return what_.c_str(); }
 #endif
 } // namespace tools
+} // namespace test
 } // namespace arduino 
 } // namespace gos

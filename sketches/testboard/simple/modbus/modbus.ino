@@ -36,6 +36,9 @@
 #define PIN_LED_GREEN                        9
 #define PIN_LED_YELLOW                      10
 
+#define PIN_LED_MODBUS_READ      PIN_LED_GREEN
+#define PIN_LED_MODBUS_WRITE    PIN_LED_YELLOW
+
 #define PIN_BUTTON_A                         8
 #define PIN_BUTTON_B                         7
 
@@ -311,7 +314,8 @@ uint8_t gm::modbus::Handler::ReadCoils(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
-
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
   return MODBUS_STATUS_OK;
 #else
@@ -341,6 +345,7 @@ uint8_t gm::modbus::Handler::ReadDiscretes(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   uint8_t result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   if(gatl::utility::range::ismemberof<uint16_t>(0x0000, start, length)) {
     if ((result = gatl::modbus::provide::discrete<uint16_t>(
@@ -362,6 +367,7 @@ uint8_t gm::modbus::Handler::ReadDiscretes(
       return result;
     }
   }
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return result;
 }
 
@@ -370,6 +376,8 @@ uint8_t gm::modbus::Handler::ReadHoldingRegisters(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
   return MODBUS_STATUS_OK;
 
@@ -409,6 +417,8 @@ MODBUS_TYPE_RESULT gm::modbus::Handler::ReadInputRegisters(
   const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
   return MODBUS_STATUS_OK;
 #else
@@ -448,6 +458,8 @@ uint8_t gm::modbus::Handler::WriteCoils(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
+  digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
+  digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
   return MODBUS_STATUS_OK;
 #else
@@ -484,6 +496,8 @@ uint8_t gm::modbus::Handler::WriteHoldingRegisters(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
+  digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
+  digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
   return MODBUS_STATUS_OK;
 #else
@@ -531,6 +545,8 @@ uint8_t gm::modbus::Handler::WriteHoldingRegisters(
 }
 MODBUS_TYPE_RESULT gm::modbus::Handler::ReadExceptionStatus(
   const MODBUS_TYPE_FUNCTION& function) {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return MODBUS_STATUS_OK;
 }
 namespace binding {

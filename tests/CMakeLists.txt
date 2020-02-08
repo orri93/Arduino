@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8.2)
+cmake_minimum_required(VERSION 3.15.0)
 
 option(GOS_ARDUINO_BUILD_MAX_SENSORS "Build the max sensors sketches" ON)
 
@@ -8,4 +8,9 @@ add_compile_definitions(GOS_ARDUINO_UNIT_TESTING)
 if (GOS_ARDUINO_BUILD_MAX_SENSORS)
   add_subdirectory(maxsensors)
 endif ()
+
+if (GOS_ARDUINO_TEST_TOOLS)
+  add_subdirectory(tools)
+endif ()
+
 add_subdirectory(testboard)

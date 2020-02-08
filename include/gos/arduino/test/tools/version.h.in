@@ -1,0 +1,44 @@
+#ifndef GOS_ARDUINO_TEST_TOOL_VERSION_H_
+#define GOS_ARDUINO_TEST_TOOL_VERSION_H_
+
+#include <cstdint>
+
+/* The major version, (1, if %PROJECT_VERSION is 1.2.3.4) */
+#define GATT_VERSION_MAJOR (@PROJECT_VERSION_MAJOR@)
+
+/* The minor version (2, if %PROJECT_VERSION is 1.2.3.4) */
+#define GATT_VERSION_MINOR (@PROJECT_VERSION_MINOR@)
+
+/* The patch version (3, if %PROJECT_VERSION is 1.2.3.4) */
+#define GATT_VERSION_PATCH (@PROJECT_VERSION_PATCH@)
+
+/* The build version (4, if %PROJECT_VERSION is 1.2.3.4) */
+#define GATT_VERSION_BUILD (@PROJECT_VERSION_TWEAK@)
+
+/* The full version, like 1.2.3.4 */
+#define GATT_VERSION         @PROJECT_VERSION@
+
+/* The full version, in string form (suited for string concatenation) */
+#define GATT_VERSION_STRING "@PROJECT_VERSION@"
+
+namespace gos {
+namespace arduino {
+namespace test {
+namespace tools {
+namespace version {
+
+typedef unsigned char Option;
+
+extern const Option WithAll;
+extern const Option WithPrefix;
+extern const Option WithBuildDateTime;
+
+std::string generate(const Option& option = WithPrefix);
+
+} // namespace version
+} // namespace tools
+} // namespace test
+} // namespace arduino 
+} // namespace gos
+
+#endif
