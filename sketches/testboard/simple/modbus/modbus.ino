@@ -136,8 +136,8 @@ namespace binding {
 void create();
 } /* End of modbus binding name-space */
 namespace buffer {
-gatl::buffer::Holder<uint16_t, char> request(MODBUS_BUFFER_SIZE);
-gatl::buffer::Holder<uint16_t, char> response(MODBUS_BUFFER_SIZE);
+gatl::buffer::Holder<uint16_t, MODBUS_TYPE_BUFFER> request(MODBUS_BUFFER_SIZE);
+gatl::buffer::Holder<uint16_t, MODBUS_TYPE_BUFFER> response(MODBUS_BUFFER_SIZE);
 }
 Handler handler;
 gatl::modbus::structures::Parameter<> parameter;
