@@ -19,11 +19,11 @@ gam::gam(Stream& stream, const int& id, const size_t& size) :
 }
 
 void gam::begin(const int& baud) {
-  gatlm::begin(stream_, handler_.parameter_, handler_.variable_, baud);
+  gatlm::begin<Type>(stream_, handler_.parameter_, handler_.variable_, baud);
 }
 
 void gam::loop() {
-  Type lr = atlm::loop(
+  Type lr = gatlm::loop<Type>(
     stream_,
     handler_.parameter_,
     handler_,
