@@ -17,7 +17,7 @@ typedef uint16_t Type;
 typedef ::gos::atl::modbus::Handler<Type> Base;
 typedef ::gos::atl::modbus::structures::Parameter<Type> Parameter;
 typedef ::gos::atl::modbus::structures::Variable<Type> Variable;
-typedef ::gos::atl::buffer::Holder<Type, char> Buffer;
+typedef ::gos::atl::buffer::Holder<Type, MODBUS_TYPE_BUFFER> Buffer;
 
 class gam;
 
