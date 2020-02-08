@@ -13,6 +13,7 @@
 
 #include <SPI.h>
 
+#include <gatled.h>
 #include <gatleeprom.h>
 #include <gatlmodbus.h>
 
@@ -54,6 +55,7 @@
 
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
+namespace gatll = ::gos::atl::led;
 
 namespace gos {
 namespace modbus {
@@ -200,14 +202,17 @@ void setup() {
   gm::modbus::binding::create();
   gme::binding::read();
 
-  pinMode(PIN_LED_RED_A, OUTPUT);
-  pinMode(PIN_LED_RED_B, OUTPUT);
+  gatll::initialize(PIN_LED_RED_A);
+  gatll::initialize(PIN_LED_RED_B);
 
-  pinMode(PIN_LED_BLUE_A, OUTPUT);
-  pinMode(PIN_LED_BLUE_B, OUTPUT);
+  gatll::initialize(PIN_LED_BLUE_A);
+  gatll::initialize(PIN_LED_BLUE_B);
 
-  pinMode(PIN_LED_GREEN, OUTPUT);
-  pinMode(PIN_LED_YELLOW, OUTPUT);
+  gatll::initialize(PIN_LED_GREEN);
+  gatll::initialize(PIN_LED_YELLOW);
+
+  gatll::blink(PIN_LED_MODBUS_READ);
+  gatll::blink(PIN_LED_MODBUS_WRITE);
 
   pinMode(PIN_BUTTON_A, INPUT_PULLUP);
   pinMode(PIN_BUTTON_B, INPUT_PULLUP);
@@ -340,30 +345,58 @@ uint8_t gm::modbus::Handler::ReadCoils(
 #endif
 }
 
+#define TEXT_DISCR_0_IS_0 "RD:0=0"
+#define TEXT_DISCR_0_IS_1 "RD:0=1"
+#define TEXT_DISCR_0_IS_E "RD:0=E"
+#define TEXT_DISCR_1_IS_0 "RD:1=0"
+#define TEXT_DISCR_1_IS_1 "RD:1=1"
+#define TEXT_DISCR_1_IS_E "RD:1=E"
+
 /* 0x02 Read Discretes */
 uint8_t gm::modbus::Handler::ReadDiscretes(
   const uint8_t& function,
   const uint16_t& start,
   const uint16_t& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  bool bs;
   uint8_t result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   if(gatl::utility::range::ismemberof<uint16_t>(0x0000, start, length)) {
-    if ((result = gatl::modbus::provide::discrete<uint16_t>(
+    bs = digitalRead(PIN_BUTTON_A) == LOW;
+    result = gatl::modbus::provide::discrete<uint16_t>(
       gm::modbus::variable,
       gm::modbus::buffer::request,
       gm::modbus::buffer::response,
       0x0000,
-      digitalRead(PIN_BUTTON_A) == LOW)) != MODBUS_STATUS_OK) {
+      bs);
+    if (result == MODBUS_STATUS_OK) {
+      gatl::buffer::strncpy(
+        gm::format::display::buffer::first,
+        (bs ? TEXT_DISCR_0_IS_1 : TEXT_DISCR_0_IS_0));
+    } else {
+      gatl::buffer::strncpy(
+        gm::format::display::buffer::first,
+        TEXT_DISCR_0_IS_E);
+      digitalWrite(PIN_LED_MODBUS_READ, LOW);
       return result;
     }
   }
   if (gatl::utility::range::ismemberof<uint16_t>(0x0001, start, length)) {
-    if ((result = gatl::modbus::provide::discrete<uint16_t>(
+    bs = digitalRead(PIN_BUTTON_B) == LOW;
+    result = gatl::modbus::provide::discrete<uint16_t>(
       gm::modbus::variable,
       gm::modbus::buffer::request,
       gm::modbus::buffer::response,
-      0x0001,
-      digitalRead(PIN_BUTTON_B) == LOW)) != MODBUS_STATUS_OK) {
+      0x0000,
+      bs);
+    if (result == MODBUS_STATUS_OK) {
+      gatl::buffer::strncpy(
+        gm::format::display::buffer::second,
+        (bs ? TEXT_DISCR_1_IS_1 : TEXT_DISCR_1_IS_0));
+    } else {
+      gatl::buffer::strncpy(
+        gm::format::display::buffer::second,
+        TEXT_DISCR_1_IS_E);
+      digitalWrite(PIN_LED_MODBUS_READ, LOW);
       return result;
     }
   }
