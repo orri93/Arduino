@@ -1,3 +1,4 @@
+/.vscode/
 CMakeSettings.json
 .qmake.stash
 *.stackdump

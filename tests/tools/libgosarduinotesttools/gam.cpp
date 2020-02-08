@@ -6,6 +6,8 @@ namespace gatt = ::gos::arduino::test::tools;
 
 namespace ga = ::gos::atl;
 namespace gatlm = ::gos::atl::modbus;
+namespace gau = ::gos::atl::utility;
+namespace gaur = ::gos::atl::utility::range;
 
 namespace gos {
 namespace arduino {
@@ -56,13 +58,35 @@ MODBUS_TYPE_RESULT Handler::ReadDiscreteInputs(
   const MODBUS_TYPE_FUNCTION& function,
   const Type& address,
   const Type& length) {
+  MODBUS_TYPE_RESULT result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+
   std::cout << "GOS Modbus Function " << static_cast<int>(function)
     << ": Reading " << length
     << " discrete inputs from address " << address << std::endl;
-  for (Type i = 0; i < length; ++i) {
-    gatlm::provide::discrete(variable_, request_, response_, i, false);
+  for (Type i = 2; i < length; ++i) {
+    gatlm::provide::discrete(variable_, request_, response_, i, true);
   }
-  return MODBUS_STATUS_OK;
+
+  if (gaur::ismemberof<uint16_t>(0x0000, address, length)) {
+    std::cout << "GOS Modbus Function " << static_cast<int>(function)
+      << ": Reading " << length
+      << " discrete inputs number " << 0x0000 << std::endl;
+    if ((result = gatlm::provide::discrete<Type>(
+      variable_, request_, response_, 0x0000, true)) != MODBUS_STATUS_OK) {
+      return result;
+    }
+  }
+  if (gaur::ismemberof<uint16_t>(0x0001, address, length)) {
+    std::cout << "GOS Modbus Function " << static_cast<int>(function)
+      << ": Reading " << length
+      << " discrete inputs number " << 0x0001 << std::endl;
+    if ((result = gatlm::provide::discrete<Type>(
+      variable_, request_, response_, 0x0001, true)) != MODBUS_STATUS_OK) {
+      return result;
+    }
+  }
+
+  return result;
 }
 
 MODBUS_TYPE_RESULT Handler::ReadHoldingRegisters(
