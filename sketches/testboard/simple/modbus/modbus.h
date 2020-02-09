@@ -38,7 +38,7 @@ namespace modbus {
 
 namespace base {
 typedef ::gos::atl::modbus::Handler<> Handler;
-}
+} // namespace base
 
 class Handler : public virtual base::Handler {
 public:
@@ -71,14 +71,11 @@ public:
 
 void initialize();
 
-namespace binding {
-void create();
-} /* End of modbus binding name-space */
 namespace buffer {
 typedef ::gos::atl::buffer::Holder<uint16_t, MODBUS_TYPE_BUFFER> Holder;
 Holder request(MODBUS_BUFFER_SIZE);
 Holder response(MODBUS_BUFFER_SIZE);
-}
+} // namespace buffer
 
 extern Handler handler;
 

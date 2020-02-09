@@ -8,23 +8,29 @@
  * 5 GND    GND         GND
  */
 
+#include <Arduino.h>
+
 #include <gatlled.h>
+#include <gatlbuffer.h>
+#include <gatlutility.h>
 
 #include "type.h"
 #include "value.h"
+#include "eeprom.h"
 #include "variable.h"
 #include "binding.h"
 #include "macro.h"
 
 #ifndef NO_DISPLAY
+#include "format.h"
 #include "display.h"
 #endif
 
 #include "modbus.h"
 
 namespace gatl = ::gos::atl;
-namespace gatlu = ::gos::atl::utility;
 namespace gatll = ::gos::atl::led;
+namespace gatlu = ::gos::atl::utility;
 
 namespace gm = ::gos::modbus;
 namespace gmt = ::gos::modbus::type;
@@ -38,7 +44,6 @@ namespace gmd = ::gos::modbus::display;
 
 void setup() {
   gm::binding::create();
-  gm::modbus::binding::create();
   gme::binding::read();
 
   gatll::initialize(PIN_LED_RED_A);
@@ -56,16 +61,12 @@ void setup() {
   pinMode(PIN_BUTTON_A, INPUT_PULLUP);
   pinMode(PIN_BUTTON_B, INPUT_PULLUP);
 
-  gm::modbus::initialize();
+  gm::initialize();
 
   /* RS485 */
   Serial.begin(MODBUS_BAUD);
 
-  gatl::modbus::begin<>(
-    Serial,
-    gm::modbus::parameter,
-    gm::modbus::variable,
-    MODBUS_BAUD);
+  gatl::modbus::begin<>(Serial, gm::parameter, gm::variable, MODBUS_BAUD);
 
 #ifndef NO_DISPLAY
   gmd::oled.U8g2->begin();
@@ -84,11 +85,11 @@ void setup() {
 void loop() {
   gatl::modbus::loop<uint16_t>(
     Serial,
-    gm::modbus::parameter,
-    gm::modbus::handler,
-    gm::modbus::variable,
-    gm::modbus::buffer::request,
-    gm::modbus::buffer::response);
+    gm::parameter,
+    gm::handler,
+    gm::variable,
+    gm::buffer::request,
+    gm::buffer::response);
 
   gm::variables::temporary::integer =
     gatl::utility::crc::calculate<>(gm::format::display::buffer::first);
@@ -127,8 +128,8 @@ void initialize() {
 }
 
 /* 0x01 Read Coils */
-uint8_t gm::modbus::Handler::ReadCoils(
-  const uint8_t& function,
+uint8_t gm::Handler::ReadCoils(
+  const MODBUS_TYPE_FUNCTION& function,
   const uint16_t& start,
   const uint16_t& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
@@ -165,49 +166,43 @@ uint8_t gm::modbus::Handler::ReadCoils(
 #define TEXT_DISCR_1_IS_E "RD:1=E"
 
 /* 0x02 Read Discretes */
-uint8_t gm::modbus::Handler::ReadDiscretes(
-  const uint8_t& function,
-  const uint16_t& start,
-  const uint16_t& length) {
+MODBUS_TYPE_RESULT gm::Handler::ReadDiscretes(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   bool bs;
   uint8_t result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  if(gatl::utility::range::ismemberof<uint16_t>(0x0000, start, length)) {
+  if(gatl::utility::range::ismemberof<uint16_t>(0x0000, address, length)) {
     bs = digitalRead(PIN_BUTTON_A) == LOW;
     result = gatl::modbus::provide::discrete<uint16_t>(
-      gm::modbus::variable,
-      gm::modbus::buffer::request,
-      gm::modbus::buffer::response,
+      gm::variable,
+      gm::buffer::request,
+      gm::buffer::response,
       0x0000,
       bs);
     if (result == MODBUS_STATUS_OK) {
-      gatl::buffer::strncpy(
-        gm::format::display::buffer::first,
-        (bs ? TEXT_DISCR_0_IS_1 : TEXT_DISCR_0_IS_0));
+      gm::display::update::first::line(
+        bs ? TEXT_DISCR_0_IS_1 : TEXT_DISCR_0_IS_0);
     } else {
-      gatl::buffer::strncpy(
-        gm::format::display::buffer::first,
-        TEXT_DISCR_0_IS_E);
+      gm::display::update::first::line(TEXT_DISCR_0_IS_E);
       digitalWrite(PIN_LED_MODBUS_READ, LOW);
       return result;
     }
   }
-  if (gatl::utility::range::ismemberof<uint16_t>(0x0001, start, length)) {
+  if (gatl::utility::range::ismemberof<uint16_t>(0x0001, address, length)) {
     bs = digitalRead(PIN_BUTTON_B) == LOW;
     result = gatl::modbus::provide::discrete<uint16_t>(
-      gm::modbus::variable,
-      gm::modbus::buffer::request,
-      gm::modbus::buffer::response,
+      gm::variable,
+      gm::buffer::request,
+      gm::buffer::response,
       0x0000,
       bs);
     if (result == MODBUS_STATUS_OK) {
-      gatl::buffer::strncpy(
-        gm::format::display::buffer::second,
-        (bs ? TEXT_DISCR_1_IS_1 : TEXT_DISCR_1_IS_0));
+      gm::display::update::second::line(
+        bs ? TEXT_DISCR_1_IS_1 : TEXT_DISCR_1_IS_0);
     } else {
-      gatl::buffer::strncpy(
-        gm::format::display::buffer::second,
-        TEXT_DISCR_1_IS_E);
+      gm::display::update::second::line(TEXT_DISCR_1_IS_E);
       digitalWrite(PIN_LED_MODBUS_READ, LOW);
       return result;
     }
@@ -217,10 +212,10 @@ uint8_t gm::modbus::Handler::ReadDiscretes(
 }
 
 /* 0x03 Read Multiple Holding Registers */
-uint8_t gm::modbus::Handler::ReadHoldingRegisters(
-  const uint8_t& function,
-  const uint16_t& start,
-  const uint16_t& length) {
+MODBUS_TYPE_RESULT gm::Handler::ReadHoldingRegisters(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
@@ -258,7 +253,7 @@ uint8_t gm::modbus::Handler::ReadHoldingRegisters(
 #endif
 }
 /* 0x04 Read Input Registers */
-MODBUS_TYPE_RESULT gm::modbus::Handler::ReadInputRegisters(
+MODBUS_TYPE_RESULT gm::Handler::ReadInputRegisters(
   const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
@@ -299,10 +294,10 @@ MODBUS_TYPE_RESULT gm::modbus::Handler::ReadInputRegisters(
 }
 
 /* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
-uint8_t gm::modbus::Handler::WriteCoils(
-  const uint8_t& function,
-  const uint16_t& start,
-  const uint16_t& length) {
+MODBUS_TYPE_RESULT gm::Handler::WriteCoils(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
   digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
@@ -337,10 +332,10 @@ uint8_t gm::modbus::Handler::WriteCoils(
 }
 
 /* 0x06 Write Single and 0x10 Write Multiple Holding Registers */
-uint8_t gm::modbus::Handler::WriteHoldingRegisters(
-  const uint8_t& function,
-  const uint16_t& start,
-  const uint16_t& length) {
+MODBUS_TYPE_RESULT gm::Handler::WriteHoldingRegisters(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
   digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
@@ -388,12 +383,12 @@ uint8_t gm::modbus::Handler::WriteHoldingRegisters(
 #endif
   return MODBUS_STATUS_OK;
 }
-MODBUS_TYPE_RESULT gm::modbus::Handler::ReadExceptionStatus(
+MODBUS_TYPE_RESULT gm::Handler::ReadExceptionStatus(
   const MODBUS_TYPE_FUNCTION& function) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return MODBUS_STATUS_OK;
 }
 
-}
-}
+} // namespace modbus
+} // namespace gos
