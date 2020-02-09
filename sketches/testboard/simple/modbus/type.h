@@ -1,6 +1,8 @@
 #ifndef GOS_ARDUINO_SKETCHES_TESTBOARD_SIMPLE_MODBUS_TYPE_H_
 #define GOS_ARDUINO_SKETCHES_TESTBOARD_SIMPLE_MODBUS_TYPE_H_
 
+#include <Arduino.h>
+
 namespace gos {
 namespace modbus {
 

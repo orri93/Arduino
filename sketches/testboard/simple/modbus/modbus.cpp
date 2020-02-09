@@ -8,14 +8,19 @@
  * 5 GND    GND         GND
  */
 
-#include <gatled.h>
-#include <gatlmodbus.h>
+#include <gatlled.h>
 
 #include "type.h"
 #include "value.h"
 #include "variable.h"
 #include "binding.h"
 #include "macro.h"
+
+#ifndef NO_DISPLAY
+#include "display.h"
+#endif
+
+#include "modbus.h"
 
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;

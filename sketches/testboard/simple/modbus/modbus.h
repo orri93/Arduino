@@ -1,15 +1,7 @@
 #ifndef GOS_ARDUINO_SKETCHES_TESTBOARD_SIMPLE_MODBUS_H_
 #define GOS_ARDUINO_SKETCHES_TESTBOARD_SIMPLE_MODBUS_H_
 
-#include <gatled.h>
 #include <gatlmodbus.h>
-
-#include "type.h"
-#include "value.h"
-#include "variable.h"
-#include "binding.h"
-#include "macro.h"
-
 
 #define GOS_MODBUS_DO_NOTHING
 
@@ -44,7 +36,11 @@
 namespace gos {
 namespace modbus {
 
-class Handler : public virtual ::gos::atl::modbus::Handler<> {
+namespace base {
+typedef ::gos::atl::modbus::Handler<> Handler;
+}
+
+class Handler : public virtual base::Handler {
 public:
   MODBUS_TYPE_RESULT ReadCoils(
     const MODBUS_TYPE_FUNCTION& function,
@@ -83,17 +79,16 @@ typedef ::gos::atl::buffer::Holder<uint16_t, MODBUS_TYPE_BUFFER> Holder;
 Holder request(MODBUS_BUFFER_SIZE);
 Holder response(MODBUS_BUFFER_SIZE);
 }
-Handler handler;
-gatl::modbus::structures::Parameter<> parameter;
-gatl::modbus::structures::Variable<> variable;
 
-} /* End of modbus name-space */
-} /* End of gos name-space */
+extern Handler handler;
 
+typedef ::gos::atl::modbus::structures::Parameter<> Parameter;
+typedef ::gos::atl::modbus::structures::Variable<> Variable;
 
-#ifndef NO_DISPLAY
-namespace gmd = ::gos::modbus::display;
-#endif
+Parameter parameter;
+Variable variable;
 
+} // namespace modbus
+} // namespace gos
 
 #endif

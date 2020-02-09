@@ -1,3 +1,5 @@
+#include <gatlstring.h>
+
 #include "format.h"
 #include "display.h"
 
@@ -8,14 +10,14 @@ namespace gos {
 namespace modbus {
 
 namespace display {
-gatl::display::Oled<> oled;
-gatl::display::asynchronous::line::Two<> twoline(oled);
+Oled oled;
+Two twoline(oled);
 bool updated = false;
 namespace update {
 namespace first {
 
 void line(const char* text) {
-  gatl::buffer::strncpy(gm::format::display::buffer::first, text);
+  gatl::string::copy(gm::format::display::buffer::first, text);
   updated = false;
 }
 

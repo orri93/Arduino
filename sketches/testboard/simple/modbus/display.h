@@ -7,8 +7,10 @@ namespace gos {
 namespace modbus {
 
 namespace display {
-extern ::gos::atl::display::Oled<> oled;
-extern ::gos::atl::display::asynchronous::line::Two<> twoline;
+typedef ::gos::atl::display::Oled<> Oled;
+typedef ::gos::atl::display::asynchronous::line::Two<> Two;
+extern Oled oled;
+extern Two twoline;
 extern bool updated;
 namespace update {
 namespace first {
