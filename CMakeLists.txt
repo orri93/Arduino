@@ -12,6 +12,8 @@ option(GOS_ARDUINO_TOOLS "Build tools" ON)
 option(GOS_ARDUINO_TEST_TOOLS "Build test tools" ON)
 option(GOS_ARDUINO_BUILD_DOC "Build Documentation" OFF)
 
+option(GOS_BUILD_ARDUINO_SKETCHES "Build Arduino sketches for testing" ON)
+
 set(gos_arduino_include_dir
   "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
@@ -192,6 +194,13 @@ if(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS OR GOS_ARDUINO_TEST_TOOLS)
   add_subdirectory(tests)
 endif()
 
+if(GOS_BUILD_ARDUINO_SKETCHES)
+  list(APPEND gos_arduino_sketches_include
+    "${gos_arduino_sketches_unit_testing_mock_include}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/gos/ArduinoUnitTesting/sublibraries/arduinotemplates/src")
+  add_subdirectory(sketches)
+endif()
+
 if (GOS_ARDUINO_BUILD_DOC)
   find_package(Doxygen)
   if(DOXYGEN_FOUND)
@@ -201,7 +210,6 @@ if (GOS_ARDUINO_BUILD_DOC)
       "Doxygen needs to be installed to generate the documentation.")
   endif ()
 endif ()
-
 
 message(STATUS "")
 message(STATUS "Arduino Folder BUILD SUMMARY")
