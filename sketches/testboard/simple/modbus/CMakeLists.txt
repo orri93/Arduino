@@ -1,4 +1,5 @@
 list(APPEND test_board_simple_modbus_source
+  "modbus.ino"
   "variable.cpp"
   "binding.cpp"
   "display.cpp"

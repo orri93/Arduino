@@ -9,5 +9,7 @@ Makefile.*
 build/
 .vs/
 out/
+ws/
 *.elf
 *.hex
+*.S

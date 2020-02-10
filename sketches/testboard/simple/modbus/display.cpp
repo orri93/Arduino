@@ -17,15 +17,20 @@ namespace update {
 namespace first {
 
 void line(const char* text) {
-  gatl::string::copy(gm::format::display::buffer::first, text);
-  updated = false;
+  if (gatl::string::compare(gm::format::display::buffer::first, text) == 0) {
+    gatl::string::copy(gm::format::display::buffer::first, text);
+    updated = true;
+  }
 }
 
 } // namespace first
 namespace second {
 
 void line(const char* text) {
-  gatl::buffer::strncpy(gm::format::display::buffer::second, text);
+  if (gatl::string::compare(gm::format::display::buffer::second, text) == 0) {
+    gatl::string::copy(gm::format::display::buffer::second, text);
+    updated = true;
+  }
 }
 
 void line() {
