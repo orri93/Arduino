@@ -10,7 +10,7 @@ namespace display {
 typedef ::gos::atl::display::Oled<> Oled;
 typedef ::gos::atl::display::asynchronous::line::Two<> Two;
 extern Oled oled;
-extern Two twoline;
+extern Two two;
 extern bool updated;
 namespace update {
 namespace first {

@@ -11,15 +11,16 @@ namespace modbus {
 
 namespace display {
 Oled oled;
-Two twoline(oled);
-bool updated = false;
+Two two(oled);
 namespace update {
 namespace first {
 
 void line(const char* text) {
-  if (gatl::string::compare(gm::format::display::buffer::first, text) == 0) {
+  if (gatl::string::compare(gm::format::display::buffer::first, text) != 0) {
     gatl::string::copy(gm::format::display::buffer::first, text);
-    updated = true;
+    gm::display::two.display(
+      gm::format::display::buffer::first,
+      gm::format::display::buffer::second);
   }
 }
 
@@ -27,9 +28,11 @@ void line(const char* text) {
 namespace second {
 
 void line(const char* text) {
-  if (gatl::string::compare(gm::format::display::buffer::second, text) == 0) {
+  if (gatl::string::compare(gm::format::display::buffer::second, text) != 0) {
     gatl::string::copy(gm::format::display::buffer::second, text);
-    updated = true;
+    gm::display::two.display(
+      gm::format::display::buffer::first,
+      gm::format::display::buffer::second);
   }
 }
 

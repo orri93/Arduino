@@ -9,6 +9,7 @@
  */
 
 #include <gatlled.h>
+#include <gatlstring.h>
 
 #include "type.h"
 #include "value.h"
@@ -24,7 +25,8 @@
 
 #include "modbus.h"
 
-#define TEXT_INITIAL "GOS MODBUS"
+#define TEXT_INITIAL_1 "GOSMB1"
+#define TEXT_INITIAL_2 "GOSMB2"
 
 namespace gatl = ::gos::atl;
 namespace gatll = ::gos::atl::led;
@@ -36,6 +38,7 @@ namespace gme = ::gos::modbus::eeprom;
 namespace gmd = ::gos::modbus::display;
 #endif
 
+bool firsttime = true;
 
 void setup() {
   gm::binding::create();
@@ -62,22 +65,16 @@ void setup() {
 
 #ifndef NO_DISPLAY
   gmd::oled.U8g2->begin();
-
-  gatl::buffer::clear(gm::format::display::buffer::first);
+  gatl::string::copy(gm::format::display::buffer::first, TEXT_INITIAL_1);
   gatl::buffer::clear(gm::format::display::buffer::second);
-
-  gm::format::display::crc::last::first =
-    gatl::utility::crc::calculate<>(gm::format::display::buffer::first);
-  gm::format::display::crc::last::second =
-    gatl::utility::crc::calculate<>(gm::format::display::buffer::second);
-
-  gm::display::update::first::line(TEXT_INITIAL);
+  gmd::two.display(
+    gm::format::display::buffer::first,
+    gm::format::display::buffer::second);
 #endif
 
   gatll::blink(PIN_LED_MODBUS_READ);
   gatll::blink(PIN_LED_MODBUS_WRITE);
 }
-
 
 void loop() {
   gatl::modbus::loop<uint16_t>(
@@ -88,29 +85,15 @@ void loop() {
     gm::buffer::request,
     gm::buffer::response);
 
-  gm::variables::temporary::integer =
-    gatl::utility::crc::calculate<>(gm::format::display::buffer::first);
-  if (
-    gm::variables::temporary::integer !=
-    gm::format::display::crc::last::first) {
-    gm::display::updated = true;
-    gm::format::display::crc::last::first = gm::variables::temporary::integer;
-  }
-  gm::variables::temporary::integer =
-    gatl::utility::crc::calculate<>(gm::format::display::buffer::second);
-  if (gm::variables::temporary::integer !=
-    gm::format::display::crc::last::second) {
-    gm::display::updated = true;
-    gm::format::display::crc::last::second = gm::variables::temporary::integer;
-  }
-
 #ifndef NO_DISPLAY
-  if (gm::display::updated) {
-    gm::display::twoline.display(
+  if (firsttime) {
+    gatl::string::copy(gm::format::display::buffer::first, TEXT_INITIAL_2);
+    gmd::two.display(
       gm::format::display::buffer::first,
       gm::format::display::buffer::second);
-    gm::display::updated = false;
+    firsttime = false;
   }
-  gm::display::twoline.loop();
+
+  gm::display::two.loop();
 #endif
 }

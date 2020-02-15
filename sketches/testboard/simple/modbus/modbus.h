@@ -15,19 +15,15 @@ typedef ::gos::atl::modbus::Handler<> Handler;
 class Handler : public virtual base::Handler {
 public:
   MODBUS_TYPE_RESULT ReadCoils(
-    const MODBUS_TYPE_FUNCTION& function,
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
   MODBUS_TYPE_RESULT ReadDiscretes(
-    const MODBUS_TYPE_FUNCTION& function,
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
   MODBUS_TYPE_RESULT ReadHoldingRegisters(
-    const MODBUS_TYPE_FUNCTION& function,
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
   MODBUS_TYPE_RESULT ReadInputRegisters(
-    const MODBUS_TYPE_FUNCTION& function,
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
   MODBUS_TYPE_RESULT WriteCoils(
@@ -38,7 +34,7 @@ public:
     const MODBUS_TYPE_FUNCTION& function,
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
-  MODBUS_TYPE_RESULT ReadExceptionStatus(const MODBUS_TYPE_FUNCTION& function);
+  MODBUS_TYPE_RESULT ReadExceptionStatus();
 };
 
 void initialize();

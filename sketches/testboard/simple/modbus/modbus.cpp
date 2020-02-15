@@ -33,10 +33,9 @@ Parameter parameter;
 Variable variable;
 
 /* 0x01 Read Coils */
-uint8_t gm::Handler::ReadCoils(
-  const MODBUS_TYPE_FUNCTION& function,
-  const uint16_t& start,
-  const uint16_t& length) {
+MODBUS_TYPE_RESULT gm::Handler::ReadCoils(
+  const MODBUS_TYPE_DEFAULT& start,
+  const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
 #ifdef GOS_MODBUS_DO_NOTHING
@@ -72,7 +71,6 @@ uint8_t gm::Handler::ReadCoils(
 
 /* 0x02 Read Discretes */
 MODBUS_TYPE_RESULT gm::Handler::ReadDiscretes(
-  const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
@@ -118,7 +116,6 @@ MODBUS_TYPE_RESULT gm::Handler::ReadDiscretes(
 
 /* 0x03 Read Multiple Holding Registers */
 MODBUS_TYPE_RESULT gm::Handler::ReadHoldingRegisters(
-  const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
@@ -159,7 +156,6 @@ MODBUS_TYPE_RESULT gm::Handler::ReadHoldingRegisters(
 }
 /* 0x04 Read Input Registers */
 MODBUS_TYPE_RESULT gm::Handler::ReadInputRegisters(
-  const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
@@ -288,8 +284,7 @@ MODBUS_TYPE_RESULT gm::Handler::WriteHoldingRegisters(
 #endif
   return MODBUS_STATUS_OK;
 }
-MODBUS_TYPE_RESULT gm::Handler::ReadExceptionStatus(
-  const MODBUS_TYPE_FUNCTION& function) {
+MODBUS_TYPE_RESULT gm::Handler::ReadExceptionStatus() {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return MODBUS_STATUS_OK;
