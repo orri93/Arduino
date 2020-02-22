@@ -25,6 +25,12 @@ namespace modbus {
 void initialize() {
   parameter.Id = 1;
   parameter.Control = PIN_RS485_MODBUS_TE;
+
+  gatl::modbus::callback::set::read::coils(
+    &::gos::modbus::callback::read::coils);
+
+  gatl::modbus::callback::set::write::coils(
+    &::gos::modbus::callback::write::coils);
 }
 
 namespace buffer {
@@ -32,16 +38,18 @@ Holder request(MODBUS_BUFFER_SIZE);
 Holder response(MODBUS_BUFFER_SIZE);
 } // namespace buffer
 
-Handler handler;
-
 Parameter parameter;
 Variable variable;
+
+#ifdef MODBUS_HANDLER_INTERFACE
+Handler handler;
 
 /* 0x01 Read Coils */
 MODBUS_TYPE_RESULT gm::Handler::ReadCoils(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+#ifdef NOT_YET
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 8) {
       gatl::modbus::provide::coil<>(
@@ -54,6 +62,7 @@ MODBUS_TYPE_RESULT gm::Handler::ReadCoils(
       return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
     }
   }
+#endif
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return MODBUS_STATUS_OK;
 }
@@ -115,6 +124,7 @@ MODBUS_TYPE_RESULT gm::Handler::ReadHoldingRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+#ifdef NOT_YET
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 256) {
       uint8_t lb = EEPROM.read(2 * (address + i));
@@ -129,6 +139,7 @@ MODBUS_TYPE_RESULT gm::Handler::ReadHoldingRegisters(
       return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
     }
   }
+#endif
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return MODBUS_STATUS_OK;
 }
@@ -148,6 +159,7 @@ MODBUS_TYPE_RESULT gm::Handler::WriteCoils(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
+#ifdef NOT_YET
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 8) {
       if (gatl::modbus::access::coil<>(gm::variable, gm::buffer::request, i)) {
@@ -159,6 +171,7 @@ MODBUS_TYPE_RESULT gm::Handler::WriteCoils(
       return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
     }
   }
+#endif
   digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
   return MODBUS_STATUS_OK;
 }
@@ -169,6 +182,7 @@ MODBUS_TYPE_RESULT gm::Handler::WriteHoldingRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
+#ifdef NOT_YET
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 256) {
       MODBUS_TYPE_DEFAULT r = gatl::modbus::access::registers<>(
@@ -185,6 +199,7 @@ MODBUS_TYPE_RESULT gm::Handler::WriteHoldingRegisters(
       return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
     }
   }
+#endif
   digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
   return MODBUS_STATUS_OK;
 }
@@ -194,6 +209,73 @@ MODBUS_TYPE_RESULT gm::Handler::ReadExceptionStatus() {
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return MODBUS_STATUS_OK;
 }
+#else
+namespace callback {
+namespace read {
+MODBUS_TYPE_RESULT coils(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
+  return MODBUS_STATUS_OK;
+}
+namespace discrete {
+static MODBUS_TYPE_RESULT inputs(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
+  return MODBUS_STATUS_OK;
+}
+}
+namespace holding {
+static MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
+  return MODBUS_STATUS_OK;
+}
+}
+namespace input {
+static MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
+  return MODBUS_STATUS_OK;
+}
+}
+namespace exception {
+static MODBUS_TYPE_RESULT status() {
+  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
+  return MODBUS_STATUS_OK;
+}
+}
+}
+namespace write {
+static MODBUS_TYPE_RESULT coils(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
+  digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
+  return MODBUS_STATUS_OK;
+}
+namespace holding {
+static MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
+  digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
+  return MODBUS_STATUS_OK;
+}
+}
+}
+}
+#endif
 
 } // namespace modbus
 } // namespace gos

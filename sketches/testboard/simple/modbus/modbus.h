@@ -8,11 +8,8 @@
 namespace gos {
 namespace modbus {
 
-namespace base {
-typedef ::gos::atl::modbus::Handler<> Handler;
-} // namespace base
-
-class Handler : public virtual base::Handler {
+#ifdef MODBUS_HANDLER_INTERFACE
+class Handler : public ::gos::atl::modbus::Handler<MODBUS_TYPE_DEFAULT> {
 public:
   MODBUS_TYPE_RESULT ReadCoils(
     const MODBUS_TYPE_DEFAULT& address,
@@ -36,6 +33,46 @@ public:
     const MODBUS_TYPE_DEFAULT& length);
   MODBUS_TYPE_RESULT ReadExceptionStatus();
 };
+extern Handler handler;
+#else
+namespace callback {
+namespace read {
+MODBUS_TYPE_RESULT coils(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length);
+namespace discrete {
+MODBUS_TYPE_RESULT inputs(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length);
+}
+namespace holding {
+MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length);
+}
+namespace input {
+MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length);
+}
+namespace exception {
+MODBUS_TYPE_RESULT status();
+}
+}
+namespace write {
+MODBUS_TYPE_RESULT coils(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length);
+namespace holding {
+MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length);
+}
+}
+}
+#endif
 
 void initialize();
 
@@ -44,8 +81,6 @@ typedef ::gos::atl::buffer::Holder<uint16_t, MODBUS_TYPE_BUFFER> Holder;
 extern Holder request;
 extern Holder response;
 } // namespace buffer
-
-extern Handler handler;
 
 typedef ::gos::atl::modbus::structures::Parameter<> Parameter;
 typedef ::gos::atl::modbus::structures::Variable<> Variable;

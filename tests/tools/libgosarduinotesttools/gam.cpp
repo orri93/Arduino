@@ -27,18 +27,30 @@ namespace tools {
 namespace modbus {
 
 gam::gam(Stream& stream, const int& id, const size_t& size) :
-  stream_(stream),
-  handler_(id, size) {
+  stream_(stream)
+#ifdef MODBUS_HANDLER_INTERFACE
+  ,handler_(id, size)
+#else
+  ,id_(id)
+  ,size_(size)
+#endif
+{
 }
 
 void gam::begin(const int& baud) {
-  bool chr = handler_.create();
-  assert(chr);
+#ifdef MODBUS_HANDLER_INTERFACE
+  bool r = handler_.create();
+  assert(r);
   gatlm::begin<Type>(stream_, handler_.parameter_, handler_.variable_, baud);
-  //stream_.setTimeout(10000);
+#else
+  bool r = initialize(id_, size_);
+  assert(r);
+  gatlm::begin<Type>(stream_, _parameter, _variable, baud);
+#endif
 }
 
 void gam::loop() {
+#ifdef MODBUS_HANDLER_INTERFACE
   Type lr = gatlm::loop<Type>(
     stream_,
     handler_.parameter_,
@@ -46,8 +58,17 @@ void gam::loop() {
     handler_.variable_,
     handler_.request_,
     handler_.response_);
+#else
+  Type lr = gatlm::loop<Type>(
+    stream_,
+    _parameter,
+    _variable,
+    *_request,
+    *_response);
+#endif
 }
 
+#ifdef MODBUS_HANDLER_INTERFACE
 Handler::Handler(const int& id, const size_t& size) :
   engine_(random_()),
   distribution_(0, 0xffff),
@@ -172,7 +193,6 @@ MODBUS_TYPE_RESULT Handler::WriteCoils(
       return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
     }
   }
-
   return MODBUS_STATUS_OK;
 }
 
@@ -198,6 +218,118 @@ MODBUS_TYPE_RESULT Handler::WriteHoldingRegisters(
 MODBUS_TYPE_RESULT Handler::ReadExceptionStatus() {
   return MODBUS_STATUS_OK;
 }
+#else
+Device _random;
+Engine _engine(_random());
+Distribution _distribution(0, 0xffff);
+
+Memory _memory(MEMORY_SIZE);
+Parameter _parameter;
+Variable _variable;
+BufferPointer _request;
+BufferPointer _response;
+uint8_t _coils = 0;
+
+bool initialize(const int& id, const size_t& size) {
+  
+  _request = std::make_unique<Buffer>(static_cast<Type>(size));
+  _response = std::make_unique<Buffer>(static_cast<Type>(size));
+  
+  _parameter.Control = 0;
+  _parameter.Id = id;
+  _variable.Index.Write = 0;
+  _variable.Length.Request = 0;
+  _variable.Length.Response = 0;
+  _variable.Length.Transmission = 0;
+  _variable.Reading = false;
+  _variable.Writing = false;
+  _variable.Time.Half = 0;
+  _variable.Time.Last = 0;
+
+  gatlm::callback::set::read::coils(&callback::read::coils);
+  gatlm::callback::set::write::coils(&callback::write::coils);
+
+  MODBUS_TYPE_BUFFER* p = _memory.create();
+  return p != nullptr;
+}
+
+namespace callback {
+namespace read {
+MODBUS_TYPE_RESULT coils(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  std::cout << "GOS Modbus Reading " << length
+    << " coils from address " << address << std::endl;
+  for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
+    if (address + i < 8) {
+      gatlm::provide::coil<>(
+        _variable,
+        *_request,
+        *_response,
+        i,
+        bitRead(_coils, address + i));
+    } else {
+      return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+    }
+  }
+  return MODBUS_STATUS_OK;
+}
+namespace discrete {
+static MODBUS_TYPE_RESULT inputs(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  return MODBUS_STATUS_OK;
+}
+}
+namespace holding {
+static MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  return MODBUS_STATUS_OK;
+}
+}
+namespace input {
+static MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  return MODBUS_STATUS_OK;
+}
+}
+namespace exception {
+static MODBUS_TYPE_RESULT status() {
+  return MODBUS_STATUS_OK;
+}
+}
+}
+namespace write {
+static MODBUS_TYPE_RESULT coils(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
+    if (address + i < 8) {
+      if (gatlm::access::coil<>(_variable, *_request, i)) {
+        bitSet(_coils, address + i);
+      } else {
+        bitClear(_coils, address + i);
+      }
+    } else {
+      return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+    }
+  }
+  return MODBUS_STATUS_OK;
+}
+namespace holding {
+static MODBUS_TYPE_RESULT registers(
+  const MODBUS_TYPE_FUNCTION& function,
+  const MODBUS_TYPE_DEFAULT& address,
+  const MODBUS_TYPE_DEFAULT& length) {
+  return MODBUS_STATUS_OK;
+}
+}
+}
+}
+#endif
 
 
 } // namespace modbus
