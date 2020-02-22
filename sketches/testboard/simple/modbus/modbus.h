@@ -17,7 +17,7 @@ public:
   MODBUS_TYPE_RESULT ReadCoils(
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
-  MODBUS_TYPE_RESULT ReadDiscretes(
+  MODBUS_TYPE_RESULT ReadDiscreteInputs(
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
   MODBUS_TYPE_RESULT ReadHoldingRegisters(

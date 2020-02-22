@@ -8,6 +8,8 @@
  * 5 GND    GND         GND
  */
 
+#include <EEPROM.h>
+
 #include <gatlled.h>
 #include <gatlstring.h>
 
@@ -72,8 +74,22 @@ void setup() {
     gm::format::display::buffer::second);
 #endif
 
+  gm::variables::led::blue::last::a =
+    gm::variables::led::blue::a = EEPROM.read(0);
+  gm::variables::led::blue::last::b =
+    gm::variables::led::blue::b = EEPROM.read(1);
+
   gatll::blink(PIN_LED_MODBUS_READ);
   gatll::blink(PIN_LED_MODBUS_WRITE);
+
+  gatll::blink(PIN_LED_RED_A);
+  gatll::blink(PIN_LED_RED_B);
+
+  gatll::blink(PIN_LED_BLUE_A);
+  gatll::blink(PIN_LED_BLUE_B);
+
+  analogWrite(PIN_LED_BLUE_A, gm::variables::led::blue::a);
+  analogWrite(PIN_LED_BLUE_B, gm::variables::led::blue::b);
 }
 
 void loop() {
@@ -84,6 +100,27 @@ void loop() {
     gm::variable,
     gm::buffer::request,
     gm::buffer::response);
+
+  gm::variables::led::red::a = bitRead(gm::variables::coils, 0);
+  gm::variables::led::red::b = bitRead(gm::variables::coils, 1);
+
+  if (gm::variables::led::red::a != gm::variables::led::red::last::a) {
+    digitalWrite(PIN_LED_RED_A, gm::variables::led::red::a ? HIGH : LOW);
+    gm::variables::led::red::last::a = gm::variables::led::red::a;
+  }
+  if (gm::variables::led::red::b != gm::variables::led::red::last::b) {
+    digitalWrite(PIN_LED_RED_B, gm::variables::led::red::b ? HIGH : LOW);
+    gm::variables::led::red::last::b = gm::variables::led::red::b;
+  }
+
+  if (gm::variables::led::blue::a != gm::variables::led::blue::last::a) {
+    analogWrite(PIN_LED_BLUE_A, gm::variables::led::blue::a);
+    gm::variables::led::blue::last::a = gm::variables::led::blue::a;
+  }
+  if (gm::variables::led::blue::b != gm::variables::led::blue::last::b) {
+    analogWrite(PIN_LED_BLUE_B, gm::variables::led::blue::b);
+    gm::variables::led::blue::last::b = gm::variables::led::blue::b;
+  }
 
 #ifndef NO_DISPLAY
   if (firsttime) {

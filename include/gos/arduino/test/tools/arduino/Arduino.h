@@ -5,7 +5,9 @@
 
 #include <gos/arduino/test/tools/arduino/serial.h>
 
+#ifndef ARDUINO_ARCH_AVR
 #define ARDUINO_ARCH_AVR
+#endif
 
 #define PROGMEM
 

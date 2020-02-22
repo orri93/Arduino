@@ -1,4 +1,7 @@
+#include <EEPROM.h>
+
 #include "macro.h"
+#include "variable.h"
 
 #ifndef NO_DISPLAY
 #include "format.h"
@@ -29,37 +32,30 @@ Holder request(MODBUS_BUFFER_SIZE);
 Holder response(MODBUS_BUFFER_SIZE);
 } // namespace buffer
 
+Handler handler;
+
 Parameter parameter;
 Variable variable;
 
 /* 0x01 Read Coils */
 MODBUS_TYPE_RESULT gm::Handler::ReadCoils(
-  const MODBUS_TYPE_DEFAULT& start,
+  const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
-  digitalWrite(PIN_LED_MODBUS_READ, LOW);
-#ifdef GOS_MODBUS_DO_NOTHING
-  return MODBUS_STATUS_OK;
-#else
-  ::gos::atl::modbus::binding::result result =
-    gatl::modbus::binding::coil::access<>(
-    gm::modbus::binding::coils,
-    gm::modbus::variable,
-    gm::modbus::buffer::request,
-    gm::modbus::buffer::response,
-    start,
-    length);
-  switch (result) {
-  case ::gos::atl::modbus::binding::result::excluded:
-    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  case ::gos::atl::modbus::binding::result::failure:
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
-  case ::gos::atl::modbus::binding::result::included:
-    return MODBUS_STATUS_OK;
-  default:
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
+    if (address + i < 8) {
+      gatl::modbus::provide::coil(
+        gm::variable,
+        gm::buffer::request,
+        gm::buffer::response,
+        i,
+        bitRead(gm::variables::coils, address + i));
+    } else {
+      return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+    }
   }
-#endif
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
+  return MODBUS_STATUS_OK;
 }
 
 #define TEXT_DISCR_0_IS_0 "RD:0=0"
@@ -70,7 +66,7 @@ MODBUS_TYPE_RESULT gm::Handler::ReadCoils(
 #define TEXT_DISCR_1_IS_E "RD:1=E"
 
 /* 0x02 Read Discretes */
-MODBUS_TYPE_RESULT gm::Handler::ReadDiscretes(
+MODBUS_TYPE_RESULT gm::Handler::ReadDiscreteInputs(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
@@ -99,7 +95,7 @@ MODBUS_TYPE_RESULT gm::Handler::ReadDiscretes(
       gm::variable,
       gm::buffer::request,
       gm::buffer::response,
-      0x0000,
+      0x0001,
       bs);
     if (result == MODBUS_STATUS_OK) {
       gm::display::update::second::line(
@@ -119,79 +115,31 @@ MODBUS_TYPE_RESULT gm::Handler::ReadHoldingRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
-  digitalWrite(PIN_LED_MODBUS_READ, LOW);
-#ifdef GOS_MODBUS_DO_NOTHING
-  return MODBUS_STATUS_OK;
-
-#else
-  ::gos::atl::modbus::binding::result ro =
-    gatl::modbus::binding::registers::access<>(
-      gm::binding::barray::output,
-      gm::modbus::variable,
-      gm::modbus::buffer::request,
-      gm::modbus::buffer::response,
-      start,
-      length);
-  ::gos::atl::modbus::binding::result rr =
-    gatl::modbus::binding::two::access<>(
-      gm::binding::barray::real,
-      gm::modbus::variable,
-      gm::modbus::buffer::request,
-      gm::modbus::buffer::response,
-      start,
-      length);
-  if (ro == ::gos::atl::modbus::binding::result::included ||
-    rr == ::gos::atl::modbus::binding::result::included) {
-    return MODBUS_STATUS_OK;
-  } else if (ro == ::gos::atl::modbus::binding::result::failure ||
-    rr == ::gos::atl::modbus::binding::result::failure) {
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
-  } else if(ro == ::gos::atl::modbus::binding::result::excluded &&
-    rr == ::gos::atl::modbus::binding::result::excluded) {
-    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  } else {
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
+    if (address + i < 256) {
+      uint8_t lb = EEPROM.read(2 * (address + i));
+      uint8_t hb = EEPROM.read(2 * (address + i) + 1);
+      gatl::modbus::provide::registers(
+        gm::variable,
+        gm::buffer::request,
+        gm::buffer::response,
+        i,
+        word(hb, lb));
+    } else {
+      return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+    }
   }
-#endif
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
+  return MODBUS_STATUS_OK;
 }
+
 /* 0x04 Read Input Registers */
 MODBUS_TYPE_RESULT gm::Handler::ReadInputRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
-#ifdef GOS_MODBUS_DO_NOTHING
   return MODBUS_STATUS_OK;
-#else
-  ::gos::atl::modbus::binding::result ro =
-    gatl::modbus::binding::registers::access<gm::type::Output>(
-      gm::modbus::binding::input::output,
-      gm::modbus::variable,
-      gm::modbus::buffer::request,
-      gm::modbus::buffer::response,
-      start,
-      length);
-  ::gos::atl::modbus::binding::result rr =
-    gatl::modbus::binding::two::access<gm::type::Real>(
-      gm::modbus::binding::input::sensor,
-      gm::modbus::variable,
-      gm::modbus::buffer::request,
-      gm::modbus::buffer::response,
-      start,
-      length);
-  if (ro == ::gos::atl::modbus::binding::result::included ||
-    rr == ::gos::atl::modbus::binding::result::included) {
-    return MODBUS_STATUS_OK;
-  } else if (ro == ::gos::atl::modbus::binding::result::failure ||
-    rr == ::gos::atl::modbus::binding::result::failure) {
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
-  } else if (ro == ::gos::atl::modbus::binding::result::excluded &&
-    rr == ::gos::atl::modbus::binding::result::excluded) {
-    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  } else {
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
-  }
-#endif
 }
 
 /* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
@@ -200,36 +148,19 @@ MODBUS_TYPE_RESULT gm::Handler::WriteCoils(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
-  digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
-#ifdef GOS_MODBUS_DO_NOTHING
-  return MODBUS_STATUS_OK;
-#else
-  ::gos::modbus::mode::gotom::state(::gos::modbus::mode::status::coil);
-  uint16_t address, first, last;
-  uint8_t index = 0;
-  ::gos::atl::modbus::binding::result result =
-    gatl::modbus::binding::coil::assign<>(
-    gm::modbus::binding::coils,
-    gm::modbus::variable,
-    gm::modbus::buffer::request,
-    gm::modbus::buffer::response,
-    start,
-    length,
-    address,
-    first,
-    last,
-    index);
-  switch (result) {
-  case ::gos::atl::modbus::binding::result::excluded:
-    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  case ::gos::atl::modbus::binding::result::failure:
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
-  case ::gos::atl::modbus::binding::result::included:
-    return MODBUS_STATUS_OK;
-  default:
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
+    if (address + i < 8) {
+      if (gatl::modbus::access::coil(gm::variable, gm::buffer::request, i)) {
+        bitSet(gm::variables::coils, address + i);
+      } else {
+        bitClear(gm::variables::coils, address + i);
+      }
+    } else {
+      return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+    }
   }
-#endif
+  digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
+  return MODBUS_STATUS_OK;
 }
 
 /* 0x06 Write Single and 0x10 Write Multiple Holding Registers */
@@ -238,52 +169,26 @@ MODBUS_TYPE_RESULT gm::Handler::WriteHoldingRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
-  digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
-#ifdef GOS_MODBUS_DO_NOTHING
-  return MODBUS_STATUS_OK;
-#else
-  uint16_t address, first, last;
-  uint8_t index = 0;
-  ::gos::atl::modbus::binding::result ro =
-    gatl::modbus::binding::registers::assign<type::Output>(
-      gm::binding::barray::output,
-      gm::modbus::variable,
-      gm::modbus::buffer::request,
-      gm::modbus::buffer::response,
-      start,
-      length,
-      address,
-      first,
-      last,
-      index);
-  ::gos::atl::modbus::binding::result rr =
-    gatl::modbus::binding::two::assign<type::Real>(
-      gm::binding::barray::real,
-      gm::modbus::variable,
-      gm::modbus::buffer::request,
-      gm::modbus::buffer::response,
-      start,
-      length,
-      address,
-      first,
-      last,
-      index);
-  if (ro == ::gos::atl::modbus::binding::result::included ||
-    rr == ::gos::atl::modbus::binding::result::included) {
-    return MODBUS_STATUS_OK;
-  } else if (ro == ::gos::atl::modbus::binding::result::failure ||
-    rr == ::gos::atl::modbus::binding::result::failure) {
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
-  } else if (ro == ::gos::atl::modbus::binding::result::excluded &&
-    rr == ::gos::atl::modbus::binding::result::excluded) {
-    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  } else {
-    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
+    if (address + i < 256) {
+      MODBUS_TYPE_DEFAULT r = gatl::modbus::access::registers(
+        gm::variable,
+        gm::buffer::request,
+        i);
+      EEPROM.update(2 * (address + i), lowByte(r));
+      EEPROM.update(2 * (address + i) + 1, highByte(r));
+      if (address + i == 0) {
+        gm::variables::led::blue::a = lowByte(r);
+        gm::variables::led::blue::b = highByte(r);
+      }
+    } else {
+      return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+    }
   }
-
-#endif
+  digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
   return MODBUS_STATUS_OK;
 }
+
 MODBUS_TYPE_RESULT gm::Handler::ReadExceptionStatus() {
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
