@@ -101,6 +101,7 @@ void loop() {
     gm::buffer::request,
     gm::buffer::response);
 
+  /*
   gm::variables::led::red::a = bitRead(gm::variables::coils, 0);
   gm::variables::led::red::b = bitRead(gm::variables::coils, 1);
 
@@ -121,8 +122,10 @@ void loop() {
     analogWrite(PIN_LED_BLUE_B, gm::variables::led::blue::b);
     gm::variables::led::blue::last::b = gm::variables::led::blue::b;
   }
+  */
 
 #ifndef NO_DISPLAY
+  /*
   if (firsttime) {
     gatl::string::copy(gm::format::display::buffer::first, TEXT_INITIAL_2);
     gmd::two.display(
@@ -130,6 +133,7 @@ void loop() {
       gm::format::display::buffer::second);
     firsttime = false;
   }
+  */
 
   gm::display::two.loop();
 #endif

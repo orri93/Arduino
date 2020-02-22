@@ -44,7 +44,7 @@ MODBUS_TYPE_RESULT gm::Handler::ReadCoils(
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 8) {
-      gatl::modbus::provide::coil(
+      gatl::modbus::provide::coil<>(
         gm::variable,
         gm::buffer::request,
         gm::buffer::response,
@@ -119,7 +119,7 @@ MODBUS_TYPE_RESULT gm::Handler::ReadHoldingRegisters(
     if (address + i < 256) {
       uint8_t lb = EEPROM.read(2 * (address + i));
       uint8_t hb = EEPROM.read(2 * (address + i) + 1);
-      gatl::modbus::provide::registers(
+      gatl::modbus::provide::registers<>(
         gm::variable,
         gm::buffer::request,
         gm::buffer::response,
@@ -150,7 +150,7 @@ MODBUS_TYPE_RESULT gm::Handler::WriteCoils(
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 8) {
-      if (gatl::modbus::access::coil(gm::variable, gm::buffer::request, i)) {
+      if (gatl::modbus::access::coil<>(gm::variable, gm::buffer::request, i)) {
         bitSet(gm::variables::coils, address + i);
       } else {
         bitClear(gm::variables::coils, address + i);
@@ -171,7 +171,7 @@ MODBUS_TYPE_RESULT gm::Handler::WriteHoldingRegisters(
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 256) {
-      MODBUS_TYPE_DEFAULT r = gatl::modbus::access::registers(
+      MODBUS_TYPE_DEFAULT r = gatl::modbus::access::registers<>(
         gm::variable,
         gm::buffer::request,
         i);
