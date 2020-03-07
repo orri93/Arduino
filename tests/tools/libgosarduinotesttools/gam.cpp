@@ -246,8 +246,8 @@ bool initialize(const int& id, const size_t& size) {
   _variable.Time.Half = 0;
   _variable.Time.Last = 0;
 
-  gatlm::callback::set::read::coils(&callback::read::coils);
-  gatlm::callback::set::write::coils(&callback::write::coils);
+  gatlm::callback::set::read::coils(callback::read::coils);
+  gatlm::callback::set::write::coils(callback::write::coils);
 
   MODBUS_TYPE_BUFFER* p = _memory.create();
   return p != nullptr;

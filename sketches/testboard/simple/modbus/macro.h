@@ -1,8 +1,6 @@
 #ifndef GOS_ARDUINO_SKETCHES_TESTBOARD_SIMPLE_MODBUS_MACRO_H_
 #define GOS_ARDUINO_SKETCHES_TESTBOARD_SIMPLE_MODBUS_MACRO_H_
 
-#define GOS_MODBUS_DO_NOTHING
-
 #define PIN_RS485_MODBUS_RX                  0
 #define PIN_RS485_MODBUS_TX                  1
 #define PIN_RS485_MODBUS_TE                  2
@@ -29,7 +27,5 @@
 #define MODBUS_SLAVE_ID                      1
 
 #define MODBUS_BUFFER_SIZE                  64
-
-#define GOS_BARRAY_BINDING
 
 #endif

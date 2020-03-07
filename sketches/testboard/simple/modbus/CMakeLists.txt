@@ -19,6 +19,9 @@ endif ()
 add_library(${test_board_simple_modbus_target}
   ${test_board_simple_modbus_source})
 
+target_compile_definitions(${test_board_simple_modbus_target} PUBLIC
+  USE_ARDUINO_MODBUS_SLAVE)
+
 target_include_directories(${test_board_simple_modbus_target} PUBLIC
   ${test_board_simple_modbus_include})
 

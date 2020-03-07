@@ -58,12 +58,10 @@ void setup() {
   pinMode(PIN_BUTTON_A, INPUT_PULLUP);
   pinMode(PIN_BUTTON_B, INPUT_PULLUP);
 
-  gm::initialize();
-
   /* RS485 */
   Serial.begin(MODBUS_BAUD);
 
-  gatl::modbus::begin<>(Serial, gm::parameter, gm::variable, MODBUS_BAUD);
+  gm::initialize();
 
 #ifndef NO_DISPLAY
   gmd::oled.U8g2->begin();
@@ -93,6 +91,10 @@ void setup() {
 }
 
 void loop() {
+#ifdef USE_ARDUINO_MODBUS_SLAVE
+  gm::slave.poll();
+#else
+#ifdef MODBUS_HANDLER_INTERFACE
   gatl::modbus::loop<uint16_t>(
     Serial,
     gm::parameter,
@@ -100,6 +102,15 @@ void loop() {
     gm::variable,
     gm::buffer::request,
     gm::buffer::response);
+#else
+  gatl::modbus::loop<uint16_t>(
+    Serial,
+    gm::parameter,
+    gm::variable,
+    gm::buffer::request,
+    gm::buffer::response);
+#endif
+#endif
 
   /*
   gm::variables::led::red::a = bitRead(gm::variables::coils, 0);
@@ -134,7 +145,6 @@ void loop() {
     firsttime = false;
   }
   */
-
   gm::display::two.loop();
 #endif
 }

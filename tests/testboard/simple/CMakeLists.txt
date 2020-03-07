@@ -17,3 +17,5 @@ endif ()
 if (GOS_ARDUINO_BUILD_OLED_TEST)
   add_subdirectory(oledtest)
 endif ()
+
+add_subdirectory(rs485/rs485test)

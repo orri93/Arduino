@@ -18,7 +18,7 @@ typedef ::gos::atl::binding::barray::reference<
 extern RealBinding real;
 }
 #else
-typedef gatl::binding::reference<type::Real, uint16_t> RealBinding;
+typedef ::gos::atl::binding::reference<type::Real, uint16_t> RealBinding;
 extern RealBinding real;
 #endif
 void create();
