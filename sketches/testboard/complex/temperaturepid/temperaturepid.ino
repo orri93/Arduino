@@ -9,6 +9,7 @@
  */
 
 #include <gatlled.h>
+#include <gatlmodbus.h>
 
 #include "macro.h"
 #include "eeprom.h"
@@ -25,7 +26,8 @@ void setup() {
 #ifndef NO_DISPLAY
   gt::display::oled.U8g2->begin();
 #ifndef NO_DISPLAY_LOGO
-  gt::display::oled.logo(
+  gatl::display::synchronous::logo(
+    gt::display::oled,
     fds_celsius_logo_width,
     fds_celsius_logo_height,
     fds_celsius_logo_bits);
@@ -43,21 +45,20 @@ void setup() {
 
   gatl::led::initialize(PIN_LED_RED);
   gatl::led::initialize(PIN_LED_BLUE);
-
   gatl::led::initialize(PIN_LED_GREEN);
   gatl::led::initialize(PIN_LED_YELLOW);
 
-  gatll::blink(PIN_LED_MODBUS_READ);
-  gatll::blink(PIN_LED_MODBUS_WRITE);
-
-  gatll::blink(PIN_LED_RED);
-  gatll::blink(PIN_LED_BLUE);
+  gatl::led::blink(PIN_LED_MODBUS_READ);
+  gatl::led::blink(PIN_LED_MODBUS_WRITE);
+  gatl::led::blink(PIN_LED_RED);
+  gatl::led::blink(PIN_LED_BLUE);
 }
 
 void loop() {
-  gatl::modbus::loop<>(
+  gatl::modbus::loop<MODBUS_TYPE_DEFAULT>(
     Serial,
     gt::modbus::parameter,
+    gt::modbus::handler,
     gt::modbus::variable,
     gt::modbus::buffer::request,
     gt::modbus::buffer::response);

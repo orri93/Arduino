@@ -35,13 +35,20 @@ namespace gos {
 namespace temperature {
 namespace modbus {
 
+Handler handler;
+
+namespace buffer {
+Holder request(MODBUS_BUFFER_SIZE);
+Holder response(MODBUS_BUFFER_SIZE);
+} // namespace buffer
+Parameter parameter;
+Variable variable;
+
 void initialize() {
   parameter.Id = MODBUS_SLAVE_ID;
   parameter.Control = PIN_RS485_MODBUS_TE;
   gatl::modbus::begin<>(Serial, parameter, variable, MODBUS_BAUD);
 }
-
-Handler handler;
 
 /* 0x01 Read Coils */
 MODBUS_TYPE_RESULT gtm::Handler::ReadCoils(
@@ -77,28 +84,31 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadDiscreteInputs(
 MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
-  uint8_t hb, lb;
-  MODBUS_TYPE_DEFAULT reg;
-  MODBUS_TYPE_RESULT result = MODBUS_STATUS_OK;
+  gatlmb::result uints, reals;
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
-  for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
-    if (address + i < 8) {
-      lb = EEPROM.read(2 * (address + i));
-      hb = EEPROM.read(1 + 2 * (address + i));
-      reg = word(hb, lb);
-      gatl::modbus::provide::registers<>(
-        gtm::variable,
-        gtm::buffer::request,
-        gtm::buffer::response,
-        i,
-        reg);
-    } else {
-      result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-      break;
-    }
-  }
+  uints = gatl::modbus::binding::registers::access(
+    gt::binding::modbus::holding::registers::uints,
+    gt::modbus::variable,
+    gt::modbus::buffer::request,
+    gt::modbus::buffer::response,
+    address,
+    length);
+  reals = gatl::modbus::binding::registers::access(
+    gt::binding::modbus::holding::registers::real,
+    gt::modbus::variable,
+    gt::modbus::buffer::request,
+    gt::modbus::buffer::response,
+    address,
+    length);
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
-  return result;
+  if (uints == gatlmb::result::failure || reals == gatlmb::result::failure) {
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  }
+  if (uints == gatlmb::result::included || reals == gatlmb::result::included) {
+    return MODBUS_STATUS_OK;
+  } else {
+    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  }
 }
 
 /* 0x04 Read Input Registers */

@@ -9,6 +9,7 @@ namespace pid {
 Parameter parameter;
 Variable variable;
 
+namespace tune {
 #ifdef PID_STORE_TIME_TUNE
 Tune t;
 namespace calculated {
@@ -20,6 +21,7 @@ namespace calculated {
 gt::pid::tune::Tune t;
 } // namespace calculated
 #endif
+} // namespace tune
 
 } // namespace pid
 } // namespace temperature
