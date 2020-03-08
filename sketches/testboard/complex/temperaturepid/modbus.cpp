@@ -2,6 +2,7 @@
 #include <EEPROM.h>
 
 #include <gatlstring.h>
+#include <gatlutility.h>
 
 #include "macro.h"
 #include "variable.h"
@@ -12,11 +13,20 @@
 #include "text.h"
 #include "pid.h"
 
+#define GOS_TC_HRA_INTERVAL  0x0000
+#define GOS_TC_HRA_MANUAL    0x0001
+#define GOS_TC_HRA_SETPOINT  0x0002
+#define GOS_TC_HRA_KP        0x0004
+#define GOS_TC_HRA_I         0x0006
+#define GOS_TC_HRA_D         0x0008
+
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
+namespace gatlur = ::gos::atl::utility::range;
 namespace gatlmb = ::gos::atl::modbus::binding;
 
 namespace gt = ::gos::temperature;
+namespace gtm = ::gos::temperature::modbus;
 namespace gtvm = ::gos::temperature::variables::modbus;
 namespace gtvt = ::gos::temperature::variables::temporary;
 namespace gtfdb = ::gos::temperature::format::display::buffer;
@@ -34,7 +44,7 @@ void initialize() {
 Handler handler;
 
 /* 0x01 Read Coils */
-MODBUS_TYPE_RESULT gt::Handler::ReadCoils(
+MODBUS_TYPE_RESULT gtm::Handler::ReadCoils(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   MODBUS_TYPE_RESULT result = MODBUS_STATUS_OK;
@@ -42,9 +52,9 @@ MODBUS_TYPE_RESULT gt::Handler::ReadCoils(
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 1) {
       gatl::modbus::provide::coil<>(
-        gt::variable,
-        gt::buffer::request,
-        gt::buffer::response,
+        gtm::variable,
+        gtm::buffer::request,
+        gtm::buffer::response,
         i,
         bitRead(gt::variables::modbus::coils, address + i));
     } else {
@@ -57,14 +67,14 @@ MODBUS_TYPE_RESULT gt::Handler::ReadCoils(
 }
 
 /* 0x02 Read Discretes */
-MODBUS_TYPE_RESULT gt::Handler::ReadDiscreteInputs(
+MODBUS_TYPE_RESULT gtm::Handler::ReadDiscreteInputs(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   return MODBUS_STATUS_ILLEGAL_FUNCTION;
 }
 
 /* 0x03 Read Multiple Holding Registers */
-MODBUS_TYPE_RESULT gt::Handler::ReadHoldingRegisters(
+MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   uint8_t hb, lb;
@@ -77,9 +87,9 @@ MODBUS_TYPE_RESULT gt::Handler::ReadHoldingRegisters(
       hb = EEPROM.read(1 + 2 * (address + i));
       reg = word(hb, lb);
       gatl::modbus::provide::registers<>(
-        gt::variable,
-        gt::buffer::request,
-        gt::buffer::response,
+        gtm::variable,
+        gtm::buffer::request,
+        gtm::buffer::response,
         i,
         reg);
     } else {
@@ -92,7 +102,7 @@ MODBUS_TYPE_RESULT gt::Handler::ReadHoldingRegisters(
 }
 
 /* 0x04 Read Input Registers */
-MODBUS_TYPE_RESULT gt::Handler::ReadInputRegisters(
+MODBUS_TYPE_RESULT gtm::Handler::ReadInputRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
   gatlmb::result uints, reals;
@@ -123,7 +133,7 @@ MODBUS_TYPE_RESULT gt::Handler::ReadInputRegisters(
 }
 
 /* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
-MODBUS_TYPE_RESULT gt::Handler::WriteCoils(
+MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
   const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
@@ -132,7 +142,7 @@ MODBUS_TYPE_RESULT gt::Handler::WriteCoils(
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
     if (address + i < 1) {
-      if (gatl::modbus::access::coil<>(gt::variable, gt::buffer::request, i)) {
+      if (gatl::modbus::access::coil<>(gtm::variable, gtm::buffer::request, i)){
         bitSet(gt::variables::modbus::coils, address + i);
       } else {
         bitClear(gt::variables::modbus::coils, address + i);
@@ -142,22 +152,22 @@ MODBUS_TYPE_RESULT gt::Handler::WriteCoils(
         if (gtvt::boolean != gt::pid::parameter.PonE) {
           gt::pid::parameter.PonE = gtvt::boolean;
           if (gt::pid::parameter.PonE) {
-            GATL_TEXT_MEMCPY(gtfdb::first, GOS_TCT_P_ON_E);
+            GATL_TEXT_MEMCPY(gtfdb::first.Buffer, GOS_TCT_P_ON_E);
           } else {
-            GATL_TEXT_MEMCPY(gtfdb::first, GOS_TCT_P_ON_E_NOT);
+            GATL_TEXT_MEMCPY(gtfdb::first.Buffer, GOS_TCT_P_ON_E_NOT);
           }
-          GATL_TEXT_MEMCPY(gtfdb::second, GOS_TCT);
+          GATL_TEXT_MEMCPY(gtfdb::second.Buffer, GOS_TCT);
           gt::display::two.display(gtfdb::first, gtfdb::second);
         }
       } else if (address + i == GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) {
         gtvt::boolean = bitRead(gtvm::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER);
         if (bitRead(last, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) != gtvt::boolean) {
           if (gt::pid::parameter.PonE) {
-            GATL_TEXT_MEMCPY(gtfdb::first, GOS_TCT_TUNE_T);
+            GATL_TEXT_MEMCPY(gtfdb::first.Buffer, GOS_TCT_TUNE_T);
           } else {
-            GATL_TEXT_MEMCPY(gtfdb::first, GOS_TCT_TUNE_K);
+            GATL_TEXT_MEMCPY(gtfdb::first.Buffer, GOS_TCT_TUNE_K);
           }
-          GATL_TEXT_MEMCPY(gtfdb::second, GOS_TCT);
+          GATL_TEXT_MEMCPY(gtfdb::second.Buffer, GOS_TCT);
           gt::display::two.display(gtfdb::first, gtfdb::second);
         }
       }
@@ -171,40 +181,36 @@ MODBUS_TYPE_RESULT gt::Handler::WriteCoils(
 }
 
 /* 0x06 Write Single and 0x10 Write Multiple Holding Registers */
-MODBUS_TYPE_RESULT gt::Handler::WriteHoldingRegisters(
+MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
   const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
-  uint8_t hb, lb;
-  MODBUS_TYPE_DEFAULT reg;
-  MODBUS_TYPE_RESULT result = MODBUS_STATUS_OK;
+  MODBUS_TYPE_RESULT result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
-  for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
-    if (address + i < 8) {
-      reg = gatl::modbus::access::registers<>(
-        gt::variable,
-        gt::buffer::request,
-        i);
-      lb = lowByte(reg);
-      hb = highByte(reg);
-      EEPROM.update(2 * (address + i), lb);
-      EEPROM.update(1 + 2 * (address + i), hb);
-      if (address + i == 0) {
-        gt::variables::led::blue::value = lb;
-      }
-    } else {
-      result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-      break;
-    }
+  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_INTERVAL, address, length)) {
+    result = MODBUS_STATUS_OK;
+  }
+  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_MANUAL, address, length)) {
+    result = MODBUS_STATUS_OK;
+  }
+  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_SETPOINT, 2, address, length)) {
+    result = MODBUS_STATUS_OK;
+  }
+  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_KP, 2, address, length)) {
+    result = MODBUS_STATUS_OK;
+  }
+  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_I, 2, address, length)) {
+    result = MODBUS_STATUS_OK;
+  }
+  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_D, 2, address, length)) {
+    result = MODBUS_STATUS_OK;
   }
   digitalWrite(PIN_LED_MODBUS_WRITE, LOW);
   return result;
 }
 
-MODBUS_TYPE_RESULT gt::Handler::ReadExceptionStatus() {
-  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
-  digitalWrite(PIN_LED_MODBUS_READ, LOW);
-  return MODBUS_STATUS_OK;
+MODBUS_TYPE_RESULT gtm::Handler::ReadExceptionStatus() {
+  return MODBUS_STATUS_ILLEGAL_FUNCTION;
 }
 
 } // namespace modbus

@@ -40,10 +40,8 @@
 |  40002 |  0x0001 |    1 | Unsigned | Controller | Manual   | The Manual value          |
 |  40003 |  0x0002 |    2 | Real     | PID        | Setpoint | The PID Setpoint          |
 |  40005 |  0x0004 |    2 | Real     | PID        | Kp       | The PID Kp                |
-|  40007 |  0x0006 |    2 | Real     | PID        | Ki       | The PID Ki                |
-|  40009 |  0x0008 |    2 | Real     | PID        | Kd       | The PID Kd                |
-|  40011 |  0x000A |    2 | Real     | PID        | Ti       | The PID Ti                |
-|  40013 |  0x000C |    2 | Real     | PID        | Td       | The PID Td                |
+|  40007 |  0x0006 |    2 | Real     | PID        | Ki/Ti    | The PID Ki/Ti             |
+|  40009 |  0x0008 |    2 | Real     | PID        | Kd/Td    | The PID Kd/Td             |
 
 ### EEPROM
 
@@ -56,3 +54,7 @@
 | 0x0009  |    4 | Real     | PID        | Kp        | The PID Kp                |
 | 0x000D  |    4 | Real     | PID        | Ki/Ti     | The PID Ki or Ti          |
 | 0x0011  |    4 | Real     | PID        | Kd/Td     | The PID Kd or Td          |
+
+### Build
+
+`Build-Arduino -Board uno -CompilerCppExtraFlags -DMODBUS_HANDLER_INTERFACE`
