@@ -1,10 +1,10 @@
-#ifndef GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_MODBUS_VALUE_H_
-#define GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_MODBUS_VALUE_H_
+#ifndef GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_VALUE_H_
+#define GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_VALUE_H_
 
 #include "type.h"
 
 namespace gos {
-namespace modbus {
+namespace temperature {
 
 namespace value {
 namespace zero {
@@ -14,7 +14,7 @@ extern const type::Unsigned Unsigned;
 } // namespace zero
 } // namespace value
 
-} // namespace modbus
+} // namespace temperature
 } // namespace gos
 
 #endif
