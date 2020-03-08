@@ -3,12 +3,15 @@
 
 #include "type.h"
 
+#define GOS_TCV_COIL_BIT_PONE             0
+#define GOS_TCV_COIL_BIT_TUNE_TIME_MASTER 1
+
 namespace gos {
 namespace temperature {
 namespace variables {
 
+extern type::Unsigned output;
 extern type::Real temperature;
-extern type::Real output;
 
 extern type::Unsigned interval;
 extern type::Unsigned manual;

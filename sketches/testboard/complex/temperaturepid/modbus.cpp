@@ -6,6 +6,7 @@
 #include "macro.h"
 #include "variable.h"
 #include "display.h"
+#include "binding.h"
 #include "format.h"
 #include "modbus.h"
 #include "text.h"
@@ -13,8 +14,10 @@
 
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
+namespace gatlmb = ::gos::atl::modbus::binding;
 
 namespace gt = ::gos::temperature;
+namespace gtvm = ::gos::temperature::variables::modbus;
 namespace gtvt = ::gos::temperature::variables::temporary;
 namespace gtfdb = ::gos::temperature::format::display::buffer;
 
@@ -57,20 +60,7 @@ MODBUS_TYPE_RESULT gt::Handler::ReadCoils(
 MODBUS_TYPE_RESULT gt::Handler::ReadDiscreteInputs(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
-  MODBUS_TYPE_RESULT result = MODBUS_STATUS_OK;
-  digitalWrite(PIN_LED_MODBUS_READ, HIGH);
-  if (address == 0 && length == 1) {
-    gatl::modbus::provide::discrete<MODBUS_TYPE_DEFAULT>(
-      gt::variable,
-      gt::buffer::request,
-      gt::buffer::response,
-      0,
-      analogRead(PIN_BUTTON) < 512);
-  } else {
-    result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  }
-  digitalWrite(PIN_LED_MODBUS_READ, LOW);
-  return result;
+  return MODBUS_STATUS_ILLEGAL_FUNCTION;
 }
 
 /* 0x03 Read Multiple Holding Registers */
@@ -105,20 +95,31 @@ MODBUS_TYPE_RESULT gt::Handler::ReadHoldingRegisters(
 MODBUS_TYPE_RESULT gt::Handler::ReadInputRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
-  MODBUS_TYPE_RESULT result = MODBUS_STATUS_OK;
+  gatlmb::result uints, reals;
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
-  if (address == 0 && length == 1) {
-    gatl::modbus::provide::registers<MODBUS_TYPE_DEFAULT>(
-      gt::variable,
-      gt::buffer::request,
-      gt::buffer::response,
-      0,
-      analogRead(A2));
-  } else {
-    result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
-  }
+  uints = gatl::modbus::binding::registers::access(
+    gt::binding::modbus::input::registers::uints,
+    gt::modbus::variable,
+    gt::modbus::buffer::request,
+    gt::modbus::buffer::response,
+    address,
+    length);
+  reals = gatl::modbus::binding::two::access(
+    gt::binding::modbus::input::registers::real,
+    gt::modbus::variable,
+    gt::modbus::buffer::request,
+    gt::modbus::buffer::response,
+    address,
+    length);
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
-  return result;
+  if (uints == gatlmb::result::failure || reals == gatlmb::result::failure) {
+    return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
+  }
+  if (uints == gatlmb::result::included || reals == gatlmb::result::included) {
+    return MODBUS_STATUS_OK;
+  } else {
+    return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  }
 }
 
 /* 0x05 Write Single Coil and 0x0f Write Multiple Coils */
@@ -126,6 +127,7 @@ MODBUS_TYPE_RESULT gt::Handler::WriteCoils(
   const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
+  uint8_t last = gt::variables::modbus::coils;
   MODBUS_TYPE_RESULT result = MODBUS_STATUS_OK;
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
@@ -135,20 +137,28 @@ MODBUS_TYPE_RESULT gt::Handler::WriteCoils(
       } else {
         bitClear(gt::variables::modbus::coils, address + i);
       }
-      if (address + i == 0) {
-        gtvt::boolean = bitRead(gt::variables::modbus::coils, 0);
+      if (address + i == GOS_TCV_COIL_BIT_PONE) {
+        gtvt::boolean = bitRead(gtvm::coils, GOS_TCV_COIL_BIT_PONE);
         if (gtvt::boolean != gt::pid::parameter.PonE) {
           gt::pid::parameter.PonE = gtvt::boolean;
           if (gt::pid::parameter.PonE) {
-            ::memcpy(gtfdb::first, GOS_TCT_P_ON_E, sizeof(GOS_TCT_P_ON_E));
+            GATL_TEXT_MEMCPY(gtfdb::first, GOS_TCT_P_ON_E);
           } else {
-            ::memcpy(gtfdb::first, GOS_TCT_P_ON_E_NOT, sizeof(GOS_TCT_P_ON_E_NOT));
+            GATL_TEXT_MEMCPY(gtfdb::first, GOS_TCT_P_ON_E_NOT);
           }
-          ::memcpy(
-            gt::format::display::buffer::second,
-            GOS_TCT,
-            sizeof(GOS_TCT));
-          gt::display::two.display(gt::format::display::buffer::first, 
+          GATL_TEXT_MEMCPY(gtfdb::second, GOS_TCT);
+          gt::display::two.display(gtfdb::first, gtfdb::second);
+        }
+      } else if (address + i == GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) {
+        gtvt::boolean = bitRead(gtvm::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER);
+        if (bitRead(last, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) != gtvt::boolean) {
+          if (gt::pid::parameter.PonE) {
+            GATL_TEXT_MEMCPY(gtfdb::first, GOS_TCT_TUNE_T);
+          } else {
+            GATL_TEXT_MEMCPY(gtfdb::first, GOS_TCT_TUNE_K);
+          }
+          GATL_TEXT_MEMCPY(gtfdb::second, GOS_TCT);
+          gt::display::two.display(gtfdb::first, gtfdb::second);
         }
       }
     } else {

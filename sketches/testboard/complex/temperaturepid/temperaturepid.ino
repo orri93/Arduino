@@ -13,6 +13,7 @@
 #include "macro.h"
 #include "eeprom.h"
 #include "modbus.h"
+#include "binding.h"
 #include "display.h"
 #include "fds-celsius-logo.h"
 
@@ -30,6 +31,8 @@ void setup() {
     fds_celsius_logo_bits);
 #endif
 #endif
+
+  gt::binding::create();
 
   gt::eeprom::retrieve::initial();
 
@@ -52,5 +55,10 @@ void setup() {
 }
 
 void loop() {
-
+  gatl::modbus::loop<>(
+    Serial,
+    gt::modbus::parameter,
+    gt::modbus::variable,
+    gt::modbus::buffer::request,
+    gt::modbus::buffer::response);
 }

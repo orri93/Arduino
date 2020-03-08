@@ -4,6 +4,8 @@
 #define GOS_TCT              ""
 #define GOS_TCT_P_ON_E       "P on E"
 #define GOS_TCT_P_ON_E_NOT   "Not P on E"
+#define GOS_TCT_TUNE_T       "T Tune"
+#define GOS_TCT_TUNE_K       "K Tune"
 
 #ifdef UNUSED
 namespace gos {

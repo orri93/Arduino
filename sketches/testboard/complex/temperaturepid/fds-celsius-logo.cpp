@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "fds-celsius-logo.h"
 
 #ifndef NO_DISPLAY

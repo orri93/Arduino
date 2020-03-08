@@ -23,8 +23,13 @@
 
 #define MODBUS_BUFFER_SIZE                  64
 
-#define SETPOINT_MININUM                     0
-#define SETPOINT_MAXIMUM                   300
+#ifdef USE_FLOAT_FOR_REAL
+#define SETPOINT_MININUM                  0.0F
+#define SETPOINT_MAXIMUM                300.0F
+#else
+#define SETPOINT_MININUM                   0.0
+#define SETPOINT_MAXIMUM                 300.0
+#endif
 
 #define PID_MINIMUM_OUTPUT                   0
 #define PID_MAXIMUM_OUTPUT                 255

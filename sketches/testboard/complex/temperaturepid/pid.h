@@ -20,9 +20,18 @@ extern Variable variable;
 
 namespace tune {
 typedef ::gos::atl::pid::Tune<::gos::temperature::type::Real> Tune;
-extern Tune k;
+#ifdef PID_STORE_TIME_TUNE
 extern Tune t;
-}
+namespace calculated {
+extern Tune k;
+} // namespace calculated
+#else
+extern Tune k;
+namespace calculated {
+extern Tune t;
+} // namespace calculated
+#endif
+} // namespace tune
 
 } // namespace pid
 } // namespace temperature

@@ -17,6 +17,14 @@ void initial() {
   EEPROM.get(GOS_TC_EEPROM_INDEX_INTERVAL, gt::variables::interval);
   EEPROM.get(GOS_TC_EEPROM_INDEX_MANUAL, gt::variables::manual);
   EEPROM.get(GOS_TC_EEPROM_INDEX_SETPOINT, gt::pid::parameter.Setpoint);
+  EEPROM.get(GOS_TC_EEPROM_INDEX_KP, gt::pid::parameter.Kp);
+#ifdef PID_STORE_TIME_TUNE
+  EEPROM.get(GOS_TC_EEPROM_INDEX_KITI, gt::pid::tune::t.Ti);
+  EEPROM.get(GOS_TC_EEPROM_INDEX_KDTD, gt::pid::tune::t.Td);
+#else
+  EEPROM.get(GOS_TC_EEPROM_INDEX_KITI, gt::pid::tune::k.Ki);
+  EEPROM.get(GOS_TC_EEPROM_INDEX_KDTD, gt::pid::tune::k.Kd);
+#endif
 }
 
 } // namespace retrieve

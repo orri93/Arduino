@@ -8,8 +8,8 @@ namespace gos {
 namespace temperature {
 namespace variables {
 
+type::Unsigned output = gt::value::zero::Unsigned;
 type::Real temperature = gt::value::zero::Real;
-type::Real output = gt::value::zero::Real;
 
 type::Unsigned interval = DEFAULT_INTERVAL;
 type::Unsigned manual = gt::value::zero::Unsigned;

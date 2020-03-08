@@ -5,7 +5,9 @@
 #define GOS_TC_EEPROM_INDEX_INTERVAL   0x0001
 #define GOS_TC_EEPROM_INDEX_MANUAL     0x0003
 #define GOS_TC_EEPROM_INDEX_SETPOINT   0x0005
-
+#define GOS_TC_EEPROM_INDEX_KP         0x0009
+#define GOS_TC_EEPROM_INDEX_KITI       0x000d
+#define GOS_TC_EEPROM_INDEX_KDTD       0x0011
 
 namespace gos {
 namespace temperature {

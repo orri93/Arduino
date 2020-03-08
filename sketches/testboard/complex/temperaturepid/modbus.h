@@ -44,7 +44,6 @@ typedef ::gos::atl::modbus::structures::Parameter<> Parameter;
 typedef ::gos::atl::modbus::structures::Variable<> Variable;
 extern Parameter parameter;
 extern Variable variable;
-#endif
 
 void initialize();
 
