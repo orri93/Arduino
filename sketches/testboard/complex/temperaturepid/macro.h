@@ -23,4 +23,15 @@
 
 #define MODBUS_BUFFER_SIZE                  64
 
+#define SETPOINT_MININUM                     0
+#define SETPOINT_MAXIMUM                   300
+
+#define PID_MINIMUM_OUTPUT                   0
+#define PID_MAXIMUM_OUTPUT                 255
+
+#define ANALOG_MININUM                       0
+#define ANALOG_MAXIMUM                    1024
+
+#define DEFAULT_INTERVAL                  1000
+
 #endif

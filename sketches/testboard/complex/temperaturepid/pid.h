@@ -1,0 +1,31 @@
+#ifndef GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_PID_H_
+#define GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_PID_H_
+
+#include <gatlpid.h>
+
+#include "type.h"
+
+namespace gos {
+namespace temperature {
+namespace pid {
+
+typedef ::gos::atl::pid::Parameter<
+  ::gos::temperature::type::Real,
+  ::gos::temperature::type::Unsigned,
+  ::gos::temperature::type::Real> Parameter;
+typedef ::gos::atl::pid::Variable<::gos::temperature::type::Real> Variable;
+
+extern Parameter parameter;
+extern Variable variable;
+
+namespace tune {
+typedef ::gos::atl::pid::Tune<::gos::temperature::type::Real> Tune;
+extern Tune k;
+extern Tune t;
+}
+
+} // namespace pid
+} // namespace temperature
+} // namespace gos
+
+#endif
