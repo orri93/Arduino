@@ -3,6 +3,7 @@
 
 #include <gatlstring.h>
 #include <gatlutility.h>
+#include <gatlformat.h>
 
 #include "macro.h"
 #include "variable.h"
@@ -23,6 +24,7 @@
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
 namespace gatlur = ::gos::atl::utility::range;
+namespace gatluri = ::gos::atl::utility::range::inclusive;
 namespace gatlmb = ::gos::atl::modbus::binding;
 
 namespace gt = ::gos::temperature;
@@ -195,24 +197,54 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
   const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
+  bool displayed = false;
+  MODBUS_TYPE_BUFFER* location;
   MODBUS_TYPE_RESULT result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
-  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_INTERVAL, address, length)) {
+  if (location = gatl::modbus::access::buffer::location(
+    gtm::variable,
+    gtm::buffer::request,
+    GOS_TC_HRA_MANUAL,
+    address, length)) {
+    gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
+    if (gt::variables::temporary::integer != gt::variables::manual) {
+      gt::variables::manual = gt::variables::temporary::integer;
+      if (!displayed) {
+        gatl::format::integer(
+          gtfdb::first, gt::variables::manual,
+          gt::format::display::buffer::text::manual);
+        displayed = true;
+      }
+    }
     result = MODBUS_STATUS_OK;
   }
-  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_MANUAL, address, length)) {
+  if (location = gatl::modbus::access::buffer::location(
+    gtm::variable,
+    gtm::buffer::request,
+    GOS_TC_HRA_INTERVAL,
+    address, length)) {
+    gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
+    if (gt::variables::temporary::integer != gt::variables::interval) {
+      gt::variables::interval = gt::variables::temporary::integer;
+      if (!displayed) {
+        gatl::format::integer(
+          gtfdb::first, gt::variables::interval,
+          gt::format::display::buffer::text::interval);
+        displayed = true;
+      }
+    }
     result = MODBUS_STATUS_OK;
   }
-  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_SETPOINT, 2, address, length)) {
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_SETPOINT, 2, address, length)) {
     result = MODBUS_STATUS_OK;
   }
-  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_KP, 2, address, length)) {
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_KP, 2, address, length)) {
     result = MODBUS_STATUS_OK;
   }
-  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_I, 2, address, length)) {
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_I, 2, address, length)) {
     result = MODBUS_STATUS_OK;
   }
-  if (gatlur::isinside<uint16_t>(GOS_TC_HRA_D, 2, address, length)) {
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_D, 2, address, length)) {
     result = MODBUS_STATUS_OK;
   }
   digitalWrite(PIN_LED_MODBUS_WRITE, LOW);

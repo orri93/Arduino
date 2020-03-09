@@ -12,6 +12,10 @@ namespace buffer {
 typedef ::gos::atl::buffer::Holder<> Holder;
 extern Holder first;
 extern Holder second;
+namespace text {
+extern Holder interval;
+extern Holder manual;
+} // namespace text
 } // namespace buffer
 } // namespace display
 } // namespace format

@@ -7,6 +7,9 @@
 #define GOS_TCT_TUNE_T       "T Tune"
 #define GOS_TCT_TUNE_K       "K Tune"
 
+#define GOS_TCT_INTERVAL     "Interval"
+#define GOS_TCT_MANUAL       "Manual"
+
 #ifdef UNUSED
 namespace gos {
 namespace temperature {
