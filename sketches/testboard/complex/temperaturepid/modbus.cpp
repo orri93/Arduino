@@ -99,7 +99,7 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
   MODBUS_TYPE_RESULT result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   if (gatluri::isinside<uint16_t>(GOS_TC_HRA_INTERVAL, 1, address, length) &&
-    (location = gatl::modbus::provide::::location<MODBUS_TYPE_DEFAULT>(
+    (location = gatl::modbus::provide::buffer::location<MODBUS_TYPE_DEFAULT>(
       gtm::variable,
       gtm::buffer::request,
       gtm::buffer::response,
