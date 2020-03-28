@@ -102,6 +102,7 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     gt::modbus::buffer::response,
     address,
     length);
+#ifdef NOT_READY_YET
   reals = gatl::modbus::binding::registers::access(
     gt::binding::modbus::holding::registers::real,
     gt::modbus::variable,
@@ -109,6 +110,9 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     gt::modbus::buffer::response,
     address,
     length);
+#else
+  reals = gatlmb::result::excluded;
+#endif
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   if (uints == gatlmb::result::failure || reals == gatlmb::result::failure) {
     return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
@@ -208,11 +212,12 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
   MODBUS_TYPE_BUFFER* location;
   MODBUS_TYPE_RESULT result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
-  if (location = gatl::modbus::access::buffer::location(
-    gtm::variable,
-    gtm::buffer::request,
-    GOS_TC_HRA_MANUAL,
-    address)) {
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_SETPOINT, 1, address, length) &&
+    (location = gatl::modbus::access::buffer::location(
+      gtm::variable,
+      gtm::buffer::request,
+      GOS_TC_HRA_MANUAL,
+      address)) != nullptr) {
     gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
     if (gt::variables::temporary::integer != gt::variables::controller::manual) {
       if (gt::variables::temporary::integer <= gt::value::MaxManual) {
@@ -235,11 +240,12 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
       goto gos_modbus_handler_write_coils_finaly;
     }
   }
-  if (location = gatl::modbus::access::buffer::location(
-    gtm::variable,
-    gtm::buffer::request,
-    GOS_TC_HRA_INTERVAL,
-    address)) {
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_INTERVAL, 1, address, length) &&
+    (location = gatl::modbus::access::buffer::location(
+      gtm::variable,
+      gtm::buffer::request,
+      GOS_TC_HRA_INTERVAL,
+      address)) != nullptr) {
     gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
     if (gt::variables::temporary::integer != gt::variables::timing::interval) {
       gt::variables::timing::interval = gt::variables::temporary::integer;

@@ -4,6 +4,7 @@
 #include "format.h"
 #include "sensor.h"
 #include "macro.h"
+#include "text.h"
 #include "type.h"
 
 namespace gatl = ::gos::atl;
