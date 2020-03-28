@@ -13,8 +13,15 @@ namespace variables {
 extern type::Unsigned output;
 extern type::Real temperature;
 
+namespace timing {
+extern unsigned long tick;
+extern unsigned long next;
 extern type::Unsigned interval;
+}
+
+namespace controller {
 extern type::Unsigned manual;
+}
 
 namespace modbus {
 extern uint8_t coils;

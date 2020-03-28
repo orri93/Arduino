@@ -1,3 +1,5 @@
+#include <SPI.h>
+
 /*
  * SPI
  *                      UNO
@@ -9,18 +11,23 @@
  */
 
 #include <gatlled.h>
+#include <gatltick.h>
 #include <gatlmodbus.h>
 
 #include "macro.h"
+#include "sensor.h"
 #include "eeprom.h"
 #include "modbus.h"
 #include "binding.h"
 #include "display.h"
+#include "variable.h"
 #include "fds-celsius-logo.h"
 
 namespace gatl = ::gos::atl;
 
 namespace gt = ::gos::temperature;
+namespace gtv = ::gos::temperature::variables;
+namespace gtvi = ::gos::temperature::variables::timing;
 
 void setup() {
 #ifndef NO_DISPLAY
@@ -37,6 +44,9 @@ void setup() {
   gt::binding::create();
 
   gt::eeprom::retrieve::initial();
+
+  SPI.begin();
+  gt::sensor::max6675.initialize();
 
   /* Serial for RS485 */
   Serial.begin(MODBUS_BAUD);
@@ -55,6 +65,8 @@ void setup() {
 }
 
 void loop() {
+  gtvi::tick = millis();
+
   gatl::modbus::loop<MODBUS_TYPE_DEFAULT>(
     Serial,
     gt::modbus::parameter,
@@ -62,4 +74,10 @@ void loop() {
     gt::modbus::variable,
     gt::modbus::buffer::request,
     gt::modbus::buffer::response);
+
+  if (gatl::tick::is::next(gtvi::next, gtvi::tick, gtvi::interval)) {
+    gt::sensor::read();
+  }
+
+  gt::display::two.loop();
 }

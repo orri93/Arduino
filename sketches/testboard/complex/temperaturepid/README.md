@@ -6,8 +6,8 @@
 | Type     | Size    | C type   | Description                            |
 |----------|--------:|----------|----------------------------------------|
 | Bits     |  8 bits | uint8_t  | Bitwise 8 bits                         |
-| Real     | 32 bits | float    | General 32 bit floating point number   |
 | Unsigned | 16 bits | uint16_t | General 16 bit unsigned integer number |
+| Real     | 32 bits | float    | General 32 bit floating point number   |
 
 ### Modbus
 
@@ -45,15 +45,24 @@
 
 ### EEPROM
 
-| Address | Size | Type     | Section    | Variable  | Description               |
-|--------:|-----:|----------|------------|-----------|---------------------------|
-| 0x0000  |    1 | Bits     | Modbus     | Coils     | The first 8 Modbus coils  |
-| 0x0001  |    2 | Unsigned | Timing     | Interval  | The control loop interval |
-| 0x0003  |    2 | Unsigned | Controller | Manual    | The Manual value          |
-| 0x0005  |    4 | Real     | PID        | Setpoint  | The PID Setpoint          |
-| 0x0009  |    4 | Real     | PID        | Kp        | The PID Kp                |
-| 0x000D  |    4 | Real     | PID        | Ki/Ti     | The PID Ki or Ti          |
-| 0x0011  |    4 | Real     | PID        | Kd/Td     | The PID Kd or Td          |
+| Address | Size | Type     | Section    | Variable   | Description                      |
+|--------:|-----:|----------|------------|------------|----------------------------------|
+| 0x0000  |    1 | Bits     | Modbus     | Coils      | The first 8 Modbus coils         |
+| 0x0001  |    2 | Unsigned | Timing     | Interval   | The control loop interval        |
+| 0x0003  |    2 | Unsigned | Controller | Manual     | The Manual value                 |
+| 0x0005  |    4 | Real     | PID        | Setpoint   | The PID Setpoint                 |
+| 0x0009  |    4 | Real     | PID        | Kp         | The PID Kp                       |
+| 0x000D  |    4 | Real     | PID        | Ki/Ti      | The PID Ki or Ti                 |
+| 0x0011  |    4 | Real     | PID        | Kd/Td      | The PID Kd or Td                 |
+| 0x0013  |    4 | Real     | Range      | Min sensor | The minimum range for the sensor |
+| 0x0015  |    4 | Real     | Range      | Max sensor | The maximum range for the sensor |
+
+### Display
+
+| Line | Variable    | Description               |
+|-----:|-------------|---------------------------|
+|    1 | Temperature | The measured temperature  |
+|    2 |             | The last command line     |
 
 ### Build
 

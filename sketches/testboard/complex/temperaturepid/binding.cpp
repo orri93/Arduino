@@ -40,11 +40,11 @@ void create() {
   gatl::binding::set<gt::type::Unsigned, uint16_t, uint8_t>(
     gt::binding::modbus::holding::registers::uints, // Reference
     0x00,                                           // Index
-    &gt::variables::interval);                      // Variable pointer
+    &gt::variables::timing::interval);              // Variable pointer
   gatl::binding::set<gt::type::Unsigned, uint16_t, uint8_t>(
     gt::binding::modbus::holding::registers::uints, // Reference
     0x01,                                           // Index
-    &gt::variables::manual);                        // Variable pointer
+    &gt::variables::controller::manual);            // Variable pointer
 
   gtvt::integer = gatl::binding::create<gt::type::Real, uint16_t, uint8_t>(
     gt::binding::modbus::holding::registers::real,  // Reference

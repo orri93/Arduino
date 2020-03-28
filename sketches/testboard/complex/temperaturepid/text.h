@@ -7,8 +7,11 @@
 #define GOS_TCT_TUNE_T       "T Tune"
 #define GOS_TCT_TUNE_K       "K Tune"
 
-#define GOS_TCT_INTERVAL     "Interval"
-#define GOS_TCT_MANUAL       "Manual"
+#define GOS_TCT_INTERVAL     "Int"
+#define GOS_TCT_MANUAL       "Man"
+#define GOS_TCT_SETPOINT     "SP"
+#define GOS_TCT_CENTIGRADE   "C"
+
 
 #ifdef UNUSED
 namespace gos {

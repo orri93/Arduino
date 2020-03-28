@@ -1,6 +1,8 @@
 #ifndef GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_MACRO_H_
 #define GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_MACRO_H_
 
+#define PIN_MAX6675_CS                       8
+
 #define PIN_RS485_MODBUS_RX                  0
 #define PIN_RS485_MODBUS_TX                  1
 #define PIN_RS485_MODBUS_TE                  2
