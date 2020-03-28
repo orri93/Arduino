@@ -17,11 +17,16 @@ namespace text {
 extern Holder interval;
 extern Holder manual;
 extern Holder setpoint;
+extern Holder temperature;
 namespace unit {
 namespace degree {
 extern Holder centigrade;
 } // namespace degree
 } // namespace unit
+namespace codes {
+extern Holder belowrange;
+extern Holder aboverange;
+} // namespace codes
 } // namespace text
 } // namespace buffer
 } // namespace display
@@ -29,6 +34,8 @@ extern Holder centigrade;
 namespace real {
 extern ::gos::atl::format::option::Number option;
 }
+
+void initialize();
 
 } // namespace format
 

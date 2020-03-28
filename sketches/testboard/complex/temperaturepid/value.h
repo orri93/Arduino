@@ -12,6 +12,13 @@ extern const type::Real Real;
 extern const type::Signed Signed;
 extern const type::Unsigned Unsigned;
 } // namespace zero
+namespace defaultval {
+namespace timing {
+extern const type::Unsigned Interval;
+} // namespace timing
+extern const double MaxSensorRange;
+} // namespace defaultval
+extern const type::Unsigned MaxManual;
 } // namespace value
 
 } // namespace temperature

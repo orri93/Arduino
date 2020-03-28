@@ -8,6 +8,8 @@ namespace gos {
 namespace temperature {
 namespace variables {
 
+type::Status status = type::Status::idle;
+
 type::Unsigned output = gt::value::zero::Unsigned;
 type::Real temperature = gt::value::zero::Real;
 

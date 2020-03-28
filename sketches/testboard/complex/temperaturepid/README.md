@@ -42,6 +42,8 @@
 |  40005 |  0x0004 |    2 | Real     | PID        | Kp       | The PID Kp                |
 |  40007 |  0x0006 |    2 | Real     | PID        | Ki/Ti    | The PID Ki/Ti             |
 |  40009 |  0x0008 |    2 | Real     | PID        | Kd/Td    | The PID Kd/Td             |
+|  40011 |  0x000A |    2 | Double   | Range      | Min sens | The min range for the sens|
+|  40013 |  0x000C |    2 | Double   | Range      | Max sens | The max range for the sens|
 
 ### EEPROM
 

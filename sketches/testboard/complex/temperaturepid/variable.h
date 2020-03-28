@@ -10,6 +10,8 @@ namespace gos {
 namespace temperature {
 namespace variables {
 
+extern type::Status status;
+
 extern type::Unsigned output;
 extern type::Real temperature;
 

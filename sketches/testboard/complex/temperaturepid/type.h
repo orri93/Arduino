@@ -7,6 +7,7 @@ namespace gos {
 namespace temperature {
 
 namespace type {
+enum class Status { undefined, idle, manual, automatic };
 #ifdef USE_FLOAT_FOR_REAL
 typedef float Real;
 #else

@@ -8,6 +8,8 @@
 #define GOS_TC_EEPROM_INDEX_KP         0x0009
 #define GOS_TC_EEPROM_INDEX_KITI       0x000d
 #define GOS_TC_EEPROM_INDEX_KDTD       0x0011
+#define GOS_TC_EEPROM_INDEX_MIN_SENS   0x0013
+#define GOS_TC_EEPROM_INDEX_MAX_SENS   0x0015
 
 namespace gos {
 namespace temperature {

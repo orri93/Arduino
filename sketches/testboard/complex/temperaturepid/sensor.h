@@ -10,8 +10,7 @@ namespace sensor {
 
 class Max6675Sensor : virtual public ::gos::atl::Sensor<double, uint8_t> {
 public:
-  Max6675Sensor();
-  Status measure();
+  ::gos::atl::sensor::Status measure();
   const char* error(uint8_t& length);
 };
 

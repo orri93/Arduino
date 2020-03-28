@@ -12,6 +12,7 @@
 #include "format.h"
 #include "modbus.h"
 #include "eeprom.h"
+#include "value.h"
 #include "text.h"
 #include "pid.h"
 
@@ -210,6 +211,33 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
   if (location = gatl::modbus::access::buffer::location(
     gtm::variable,
     gtm::buffer::request,
+    GOS_TC_HRA_MANUAL,
+    address)) {
+    gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
+    if (gt::variables::temporary::integer != gt::variables::controller::manual) {
+      if (gt::variables::temporary::integer <= gt::value::MaxManual) {
+        gt::variables::controller::manual = gt::variables::temporary::integer;
+        EEPROM.put<type::Unsigned>(GOS_TC_EEPROM_INDEX_MANUAL, gtvc::manual);
+        if (!displayed) {
+          gatl::format::integer<type::Unsigned, uint8_t>(
+            gtfdb::second,
+            gt::variables::controller::manual,
+            &gt::format::display::buffer::text::manual);
+          gt::variables::status = gt::type::Status::manual;
+          displayed = true;
+        }
+      }
+    }
+    if (gt::variables::temporary::integer <= gt::value::MaxManual) {
+      result = MODBUS_STATUS_OK;
+    } else {
+      result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
+      goto gos_modbus_handler_write_coils_finaly;
+    }
+  }
+  if (location = gatl::modbus::access::buffer::location(
+    gtm::variable,
+    gtm::buffer::request,
     GOS_TC_HRA_INTERVAL,
     address)) {
     gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
@@ -218,28 +246,9 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
       EEPROM.put<type::Unsigned>(GOS_TC_EEPROM_INDEX_INTERVAL, gtvi::interval);
       if (!displayed) {
         gatl::format::integer<type::Unsigned, uint8_t>(
-          gtfdb::first,
+          gtfdb::second,
           gt::variables::timing::interval,
           &gt::format::display::buffer::text::interval);
-        displayed = true;
-      }
-    }
-    result = MODBUS_STATUS_OK;
-  }
-  if (location = gatl::modbus::access::buffer::location(
-    gtm::variable,
-    gtm::buffer::request,
-    GOS_TC_HRA_MANUAL,
-    address)) {
-    gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
-    if (gt::variables::temporary::integer != gt::variables::controller::manual) {
-      gt::variables::controller::manual = gt::variables::temporary::integer;
-      EEPROM.put<type::Unsigned>(GOS_TC_EEPROM_INDEX_MANUAL, gtvc::manual);
-      if (!displayed) {
-        gatl::format::integer<type::Unsigned, uint8_t>(
-          gtfdb::first,
-          gt::variables::controller::manual,
-          &gt::format::display::buffer::text::manual);
         displayed = true;
       }
     }
@@ -283,6 +292,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
     result = MODBUS_STATUS_OK;
   }
 #endif
+gos_modbus_handler_write_coils_finaly:
   if (displayed) {
     gt::display::two.display(gtfdb::first, gtfdb::second);
   }

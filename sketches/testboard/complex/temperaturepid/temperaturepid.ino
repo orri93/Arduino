@@ -14,10 +14,12 @@
 #include <gatltick.h>
 #include <gatlmodbus.h>
 
+#include "pid.h"
 #include "macro.h"
 #include "sensor.h"
 #include "eeprom.h"
 #include "modbus.h"
+#include "format.h"
 #include "binding.h"
 #include "display.h"
 #include "variable.h"
@@ -28,6 +30,7 @@ namespace gatl = ::gos::atl;
 namespace gt = ::gos::temperature;
 namespace gtv = ::gos::temperature::variables;
 namespace gtvi = ::gos::temperature::variables::timing;
+namespace gtfdb = ::gos::temperature::format::display::buffer;
 
 void setup() {
 #ifndef NO_DISPLAY
@@ -40,6 +43,8 @@ void setup() {
     fds_celsius_logo_bits);
 #endif
 #endif
+
+  gt::format::initialize();
 
   gt::binding::create();
 
@@ -75,9 +80,26 @@ void loop() {
     gt::modbus::buffer::request,
     gt::modbus::buffer::response);
 
-  if (gatl::tick::is::next(gtvi::next, gtvi::tick, gtvi::interval)) {
+  if (gatl::tick::is::next<GATL_TICK_DEFAULT_TYPE, gt::type::Unsigned>(
+      gtvi::next, gtvi::tick, gtvi::interval)) {
+    digitalWrite(PIN_LED_BLUE, HIGH);
     gt::sensor::read();
+    switch (gtv::status) {
+    case gt::type::Status::manual:
+      gtv::output = gtv::controller::manual;
+      break;
+    case gt::type::Status::automatic:
+      gtv::output = gatl::pid::compute<gt::type::Real, gt::type::Unsigned>(
+        gtv::temperature, gt::pid::variable, gt::pid::parameter);
+      break;
+    }
+#ifndef NO_DISPLAY
+    gt::display::two.display(gtfdb::first, gtfdb::second);
+#endif
+    digitalWrite(PIN_LED_BLUE, LOW);
   }
 
+#ifndef NO_DISPLAY
   gt::display::two.loop();
+#endif
 }
