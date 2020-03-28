@@ -20,7 +20,11 @@ namespace sensor {
 
 gatl::sensor::Status Max6675Sensor::measure() {
   if (max6675.read(Value)) {
-    Last = check();
+    if (isfinite(Value)) {
+      Last = check();
+    } else {
+      Last = gatl::sensor::Status::Fault;
+    }
   } else {
     Last = gatl::sensor::Status::Fault;
   }

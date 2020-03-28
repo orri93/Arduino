@@ -22,6 +22,8 @@
 #define GOS_TC_HRA_KP        0x0004
 #define GOS_TC_HRA_I         0x0006
 #define GOS_TC_HRA_D         0x0008
+#define GOS_TC_HRA_MIN_SENS  0x000A
+#define GOS_TC_HRA_MAX_SENS  0x000C
 
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
@@ -93,8 +95,30 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadDiscreteInputs(
 MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
-  gatlmb::result uints, reals;
+  MODBUS_TYPE_BUFFER* location;
+  MODBUS_TYPE_RESULT result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_INTERVAL, 1, address, length) &&
+    (location = gatl::modbus::provide::::location<MODBUS_TYPE_DEFAULT>(
+      gtm::variable,
+      gtm::buffer::request,
+      gtm::buffer::response,
+      GOS_TC_HRA_INTERVAL,
+      address)) != nullptr) {
+    MODBUS_WRITE_UINT16_AT0(location, gt::variables::timing::interval);
+    result = MODBUS_STATUS_OK;
+  }
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_MANUAL, 1, address, length) &&
+    (location = gatl::modbus::provide::buffer::location<MODBUS_TYPE_DEFAULT>(
+      gtm::variable,
+      gtm::buffer::request,
+      gtm::buffer::response,
+      GOS_TC_HRA_MANUAL,
+      address)) != nullptr) {
+    MODBUS_WRITE_UINT16_AT0(location, gt::variables::controller::manual);
+    result = MODBUS_STATUS_OK;
+  }
+#ifdef NOT_READY_YET
   uints = gatl::modbus::binding::registers::access(
     gt::binding::modbus::holding::registers::uints,
     gt::modbus::variable,
@@ -102,7 +126,6 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     gt::modbus::buffer::response,
     address,
     length);
-#ifdef NOT_READY_YET
   reals = gatl::modbus::binding::registers::access(
     gt::binding::modbus::holding::registers::real,
     gt::modbus::variable,
@@ -110,9 +133,6 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     gt::modbus::buffer::response,
     address,
     length);
-#else
-  reals = gatlmb::result::excluded;
-#endif
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   if (uints == gatlmb::result::failure || reals == gatlmb::result::failure) {
     return MODBUS_STATUS_SLAVE_DEVICE_FAILURE;
@@ -122,6 +142,9 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
   } else {
     return MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   }
+#endif
+  digitalWrite(PIN_LED_MODBUS_READ, LOW);
+  return result;
 }
 
 /* 0x04 Read Input Registers */
@@ -212,8 +235,8 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
   MODBUS_TYPE_BUFFER* location;
   MODBUS_TYPE_RESULT result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
-  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_SETPOINT, 1, address, length) &&
-    (location = gatl::modbus::access::buffer::location(
+  if (gatluri::isinside<uint16_t>(GOS_TC_HRA_MANUAL, 1, address, length) &&
+    (location = gatl::modbus::access::buffer::location<MODBUS_TYPE_DEFAULT>(
       gtm::variable,
       gtm::buffer::request,
       GOS_TC_HRA_MANUAL,
