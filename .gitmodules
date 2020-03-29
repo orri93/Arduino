@@ -94,3 +94,9 @@
 	path = extern/libmodbus
 	url = https://github.com/orri93/libmodbus.git
 
+[submodule "libraries/OneWire"]
+	path = libraries/OneWire
+	url = https://github.com/PaulStoffregen/OneWire.git
+[submodule "libraries/Arduino-Temperature-Control-Library"]
+	path = libraries/Arduino-Temperature-Control-Library
+	url = https://github.com/milesburton/Arduino-Temperature-Control-Library.git

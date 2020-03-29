@@ -27,6 +27,14 @@ namespace modbus {
 uint8_t coils = 0;
 } // namespace modbus
 
+namespace pid {
+namespace tune {
+namespace time {
+type::Unsigned unit = GOT_PI_TUNE_TIME_UNIT_DEFAULT;
+}
+}
+}
+
 namespace temporary {
 bool boolean;
 type::Unsigned integer;

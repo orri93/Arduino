@@ -1,4 +1,4 @@
-#include <SPI.h>
+#include "sensor.h"
 
 /*
  * SPI
@@ -16,7 +16,6 @@
 
 #include "pid.h"
 #include "macro.h"
-#include "sensor.h"
 #include "eeprom.h"
 #include "modbus.h"
 #include "format.h"
@@ -47,13 +46,18 @@ void setup() {
 
   gt::eeprom::retrieve::initial();
 
-  SPI.begin();
-  gt::sensor::max6675.initialize();
+  gt::pid::parameter.PonE = bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_PONE);
+  gt::pid::tune::calculate();
+  gt::pid::tune::tunings();
+
+  gt::sensor::temperature.begin();
 
   /* Serial for RS485 */
   Serial.begin(MODBUS_BAUD);
 
   gt::modbus::initialize();
+
+  pinMode(PIN_HEATER, OUTPUT);
 
   gatl::led::initialize(PIN_LED_RED);
   gatl::led::initialize(PIN_LED_BLUE);
@@ -79,21 +83,39 @@ void loop() {
 
   if (gatl::tick::is::next<GATL_TICK_DEFAULT_TYPE, gt::type::Unsigned>(
       gtvi::next, gtvi::tick, gtvi::interval)) {
-    digitalWrite(PIN_LED_BLUE, HIGH);
+    if(gtv::status == gt::type::Status::automatic) {
+      digitalWrite(PIN_LED_BLUE, HIGH);
+    }
     gt::sensor::read();
     switch (gtv::status) {
     case gt::type::Status::manual:
       gtv::output = gtv::controller::manual;
       break;
     case gt::type::Status::automatic:
-      gtv::output = gatl::pid::compute<gt::type::Real, gt::type::Unsigned>(
-        gtv::temperature, gt::pid::variable, gt::pid::parameter);
+      switch(gt::sensor::temperature.Last) {
+      case gatl::sensor::Status::Operational:
+      case gatl::sensor::Status::BelowRange:
+      case gatl::sensor::Status::AboveRange:
+        gtv::output = gatl::pid::compute<gt::type::Real, gt::type::Unsigned>(
+          gtv::temperature, gt::pid::variable, gt::pid::parameter);
+        break;
+      default:
+        gtv::output = 0;
+        break;
+      }
+      break;
+    case gt::type::Status::idle:
+    default:
+      gtv::output = 0;
       break;
     }
+    analogWrite(PIN_HEATER, gtv::output);
 #ifndef NO_DISPLAY
     gt::display::two.display(gtfdb::first, gtfdb::second);
 #endif
-    digitalWrite(PIN_LED_BLUE, LOW);
+   if(gtv::status == gt::type::Status::automatic) {
+      digitalWrite(PIN_LED_BLUE, LOW);
+   }
   }
 
 #ifndef NO_DISPLAY

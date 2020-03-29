@@ -23,6 +23,8 @@ typedef ::gos::atl::pid::Tune<::gos::temperature::type::Real> Tune;
 typedef ::gos::atl::pid::TimeTune<::gos::temperature::type::Real> TimeTune;
 extern Tune k;
 extern TimeTune t;
+void calculate();
+void tunings();
 } // namespace tune
 
 } // namespace pid

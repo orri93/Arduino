@@ -3,8 +3,13 @@
 
 #include "type.h"
 
-#define GOS_TCV_COIL_BIT_PONE             0
-#define GOS_TCV_COIL_BIT_TUNE_TIME_MASTER 1
+#define GOS_TCV_COIL_BIT_PONE               0
+#define GOS_TCV_COIL_BIT_TUNE_TIME_MASTER   1
+
+#define GOT_PI_TUNE_TIME_UNIT_DEFAULT       0
+#define GOT_PI_TUNE_TIME_UNIT_MILLISECONDS  1
+#define GOT_PI_TUNE_TIME_UNIT_SECONDS       2
+#define GOT_PI_TUNE_TIME_UNIT_MINUTES       3
 
 namespace gos {
 namespace temperature {
@@ -28,6 +33,14 @@ extern type::Unsigned manual;
 namespace modbus {
 extern uint8_t coils;
 } // namespace modbus
+
+namespace pid {
+namespace tune {
+namespace time {
+extern type::Unsigned unit;
+}
+}
+}
 
 namespace temporary {
 extern bool boolean;

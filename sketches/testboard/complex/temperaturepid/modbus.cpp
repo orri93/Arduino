@@ -16,6 +16,8 @@
 #include "text.h"
 #include "pid.h"
 
+#define GOS_TC_COIL_COUNT         8
+
 #define GOS_TC_IRA_OUTPUT    0x0000
 #define GOS_TC_IRA_TEMP      0x0001
 
@@ -27,6 +29,7 @@
 #define GOS_TC_HRA_D         0x0008
 #define GOS_TC_HRA_MIN_SENS  0x000A
 #define GOS_TC_HRA_MAX_SENS  0x000C
+#define GOS_TC_HRA_TIME_TUNE 0x000E
 
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
@@ -72,7 +75,7 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadCoils(
   MODBUS_TYPE_RESULT result = MODBUS_STATUS_OK;
   digitalWrite(PIN_LED_MODBUS_READ, HIGH);
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
-    if (address + i < 1) {
+    if (address + i < GOS_TC_COIL_COUNT) {
       gatl::modbus::provide::coil<>(
         gtm::variable,
         gtm::buffer::request,
@@ -171,20 +174,20 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     if (bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER)) {
       gt::variables::temporary::integer =
         gatl::utility::number::part::first<uint16_t, type::Real>(
-          gtp::tune::k.Ki);
+          gtp::tune::t.Ti);
       MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
       gt::variables::temporary::integer =
         gatl::utility::number::part::second<uint16_t, type::Real>(
-          gtp::tune::k.Ki);
+          gtp::tune::t.Ti);
       MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     } else {
       gt::variables::temporary::integer =
         gatl::utility::number::part::first<uint16_t, type::Real>(
-          gtp::tune::t.Ti);
+          gtp::tune::k.Ki);
       MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
       gt::variables::temporary::integer =
         gatl::utility::number::part::second<uint16_t, type::Real>(
-          gtp::tune::t.Ti);
+          gtp::tune::k.Ki);
       MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     }
     result = MODBUS_STATUS_OK;
@@ -200,20 +203,20 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     if (bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER)) {
       gt::variables::temporary::integer =
         gatl::utility::number::part::first<uint16_t, type::Real>(
-          gtp::tune::k.Kd);
+          gtp::tune::t.Td);
       MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
       gt::variables::temporary::integer =
         gatl::utility::number::part::second<uint16_t, type::Real>(
-          gtp::tune::k.Kd);
+          gtp::tune::t.Td);
       MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     } else {
       gt::variables::temporary::integer =
         gatl::utility::number::part::first<uint16_t, type::Real>(
-          gtp::tune::t.Td);
+          gtp::tune::k.Kd);
       MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
       gt::variables::temporary::integer =
         gatl::utility::number::part::second<uint16_t, type::Real>(
-          gtp::tune::t.Td);
+          gtp::tune::k.Kd);
       MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     }
     result = MODBUS_STATUS_OK;
@@ -228,11 +231,11 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     length)) {
     gt::variables::temporary::integer =
       gatl::utility::number::part::first<uint16_t, double>(
-        gt::sensor::max6675sensor.Range.lowest);
+        gt::sensor::temperature.Range.lowest);
     MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
     gt::variables::temporary::integer =
       gatl::utility::number::part::second<uint16_t, double>(
-        gt::sensor::max6675sensor.Range.lowest);
+        gt::sensor::temperature.Range.lowest);
     MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     result = MODBUS_STATUS_OK;
   }
@@ -246,12 +249,23 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     length)) {
     gt::variables::temporary::integer =
       gatl::utility::number::part::first<uint16_t, double>(
-        gt::sensor::max6675sensor.Range.highest);
+        gt::sensor::temperature.Range.highest);
     MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
     gt::variables::temporary::integer =
       gatl::utility::number::part::second<uint16_t, double>(
-        gt::sensor::max6675sensor.Range.highest);
+        gt::sensor::temperature.Range.highest);
     MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
+    result = MODBUS_STATUS_OK;
+  }
+  if (location = gatl::modbus::provide::buffer::location<MODBUS_TYPE_DEFAULT>(
+    gtm::variable,
+    gtm::buffer::request,
+    gtm::buffer::response,
+    GOS_TC_HRA_TIME_TUNE,
+    1,
+    address,
+    length)) {
+    MODBUS_WRITE_UINT16_AT0(location, gtv::pid::tune::time::unit);
     result = MODBUS_STATUS_OK;
   }
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
@@ -305,10 +319,10 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
   const MODBUS_TYPE_DEFAULT& length) {
   bool displayed = false;
   uint8_t last = gt::variables::modbus::coils;
-  MODBUS_TYPE_RESULT result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+  MODBUS_TYPE_RESULT result = MODBUS_STATUS_OK;
   digitalWrite(PIN_LED_MODBUS_WRITE, HIGH);
   for (MODBUS_TYPE_DEFAULT i = 0; i < length; ++i) {
-    if (address + i < 1) {
+    if (address + i < GOS_TC_COIL_COUNT) {
       if (gatl::modbus::access::coil<>(gtm::variable, gtm::buffer::request, i)){
         bitSet(gt::variables::modbus::coils, address + i);
       } else {
@@ -327,7 +341,6 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
             displayed = true;
           }
         }
-        result = MODBUS_STATUS_OK;
       } else if (address + i == GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) {
         gtvt::boolean = bitRead(gtvm::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER);
         if (bitRead(last, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) != gtvt::boolean) {
@@ -339,10 +352,19 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
             }
             displayed = true;
           }
+          gt::pid::tune::calculate();
+          gt::pid::tune::tunings();
+          gt::eeprom::tune::restore();
         }
-        result = MODBUS_STATUS_OK;
       }
+    } else {
+      result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
+      goto gos_modbus_handler_write_coils_finaly;
     }
+  }
+gos_modbus_handler_write_coils_finaly:
+  if (last != gt::variables::modbus::coils) {
+    EEPROM.update(GOS_TC_EEPROM_INDEX_COILS, gt::variables::modbus::coils);
   }
   if (displayed) {
     gt::display::two.display(gtfdb::first, gtfdb::second);
@@ -381,14 +403,12 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
           gt::variables::status = gt::type::Status::manual;
           displayed = true;
         }
+      } else {
+        result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
+        goto gos_modbus_handler_write_holding_registers_finaly;
       }
     }
-    if (gt::variables::temporary::integer <= gt::value::MaxManual) {
-      result = MODBUS_STATUS_OK;
-    } else {
-      result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
-      goto gos_modbus_handler_write_coils_finaly;
-    }
+    result = MODBUS_STATUS_OK;
   }
   if (location = gatl::modbus::access::buffer::location<MODBUS_TYPE_DEFAULT>(
     gtm::variable,
@@ -401,21 +421,27 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
       MODBUS_READ_UINT16_AT0(location),
       MODBUS_READ_UINT16_AT0(location + 2));
     if (gtvt::real != gtp::parameter.Setpoint) {
-      gtp::parameter.Setpoint = gtvt::real;
-      EEPROM.put<type::Real>(
-        GOS_TC_EEPROM_INDEX_SETPOINT,
-        gtp::parameter.Setpoint);
-      if (!displayed) {
-        gatl::format::real<type::Real, uint8_t>(
-          gtfdb::second,
-          gtp::parameter.Setpoint,
-          gtf::real::option,
-          &gtfdb::text::setpoint,
-          &gtfdb::text::unit::degree::centigrade);
-        gt::variables::status = gt::type::Status::automatic;
-        displayed = true;
+      if (gtvt::real <= gt::sensor::temperature.Range.highest) {
+        gtp::parameter.Setpoint = gtvt::real;
+        EEPROM.put<type::Real>(
+          GOS_TC_EEPROM_INDEX_SETPOINT,
+          gtp::parameter.Setpoint);
+        if (!displayed) {
+          gatl::format::real<type::Real, uint8_t>(
+            gtfdb::second,
+            gtp::parameter.Setpoint,
+            gtf::real::option,
+            &gtfdb::text::setpoint,
+            &gtfdb::text::unit::degree::centigrade);
+          gt::variables::status = gt::type::Status::automatic;
+          displayed = true;
+        }
+      } else {
+        result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
+        goto gos_modbus_handler_write_holding_registers_finaly;
       }
     }
+    result = MODBUS_STATUS_OK;
   }
   if (location = gatl::modbus::access::buffer::location(
     gtm::variable,
@@ -463,6 +489,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
         displayed = true;
       }
     }
+    result = MODBUS_STATUS_OK;
   }
   if (location = gatl::modbus::access::buffer::location<MODBUS_TYPE_DEFAULT>(
     gtm::variable,
@@ -556,20 +583,26 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
     gtvt::real = gatlun::part::combine<uint16_t, double>(
       MODBUS_READ_UINT16_AT0(location),
       MODBUS_READ_UINT16_AT0(location + 2));
-    if (gtvt::real != gt::sensor::max6675sensor.Range.lowest) {
-      gt::sensor::max6675sensor.Range.lowest = gtvt::real;
-      EEPROM.put<double>(
-        GOS_TC_EEPROM_INDEX_MIN_SENS,
-        gt::sensor::max6675sensor.Range.lowest);
-      if (!displayed) {
-        gatl::format::real<type::Real, uint8_t>(
-          gtfdb::second,
-          gt::sensor::max6675sensor.Range.lowest,
-          gtf::real::option,
-          &gtfdb::text::minsens);
-        displayed = true;
+    if (gtvt::real != gt::sensor::temperature.Range.lowest) {
+      if (gtvt::real < gt::sensor::temperature.Range.highest) {
+        gt::sensor::temperature.Range.lowest = gtvt::real;
+        EEPROM.put<double>(
+          GOS_TC_EEPROM_INDEX_MIN_SENS,
+          gt::sensor::temperature.Range.lowest);
+        if (!displayed) {
+          gatl::format::real<type::Real, uint8_t>(
+            gtfdb::second,
+            gt::sensor::temperature.Range.lowest,
+            gtf::real::option,
+            &gtfdb::text::minsens);
+          displayed = true;
+        }
+      } else {
+        result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
+        goto gos_modbus_handler_write_holding_registers_finaly;
       }
     }
+    result = MODBUS_STATUS_OK;
   }
   if (location = gatl::modbus::access::buffer::location<MODBUS_TYPE_DEFAULT>(
     gtm::variable,
@@ -581,22 +614,32 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
     gtvt::real = gatlun::part::combine<uint16_t, double>(
       MODBUS_READ_UINT16_AT0(location),
       MODBUS_READ_UINT16_AT0(location + 2));
-    if (gtvt::real != gt::sensor::max6675sensor.Range.highest) {
-      gt::sensor::max6675sensor.Range.highest = gtvt::real;
-      EEPROM.put<double>(
-        GOS_TC_EEPROM_INDEX_MIN_SENS,
-        gt::sensor::max6675sensor.Range.highest);
-      if (!displayed) {
-        gatl::format::real<type::Real, uint8_t>(
-          gtfdb::second,
-          gt::sensor::max6675sensor.Range.highest,
-          gtf::real::option,
-          &gtfdb::text::maxsens);
-        displayed = true;
+    if (gtvt::real != gt::sensor::temperature.Range.highest) {
+      if (gtvt::real > gt::sensor::temperature.Range.lowest) {
+        gt::sensor::temperature.Range.highest = gtvt::real;
+        EEPROM.put<double>(
+          GOS_TC_EEPROM_INDEX_MIN_SENS,
+          gt::sensor::temperature.Range.highest);
+        if (!displayed) {
+          gatl::format::real<type::Real, uint8_t>(
+            gtfdb::second,
+            gt::sensor::temperature.Range.highest,
+            gtf::real::option,
+            &gtfdb::text::maxsens);
+          displayed = true;
+        }
+      } else {
+        result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
+        goto gos_modbus_handler_write_holding_registers_finaly;
       }
     }
+    result = MODBUS_STATUS_OK;
   }
-gos_modbus_handler_write_coils_finaly:
+gos_modbus_handler_write_holding_registers_finaly:
+  if (calculatetime) {
+    gt::pid::tune::calculate();
+    gt::pid::tune::tunings();
+  }
   if (displayed) {
     gt::display::two.display(gtfdb::first, gtfdb::second);
   }

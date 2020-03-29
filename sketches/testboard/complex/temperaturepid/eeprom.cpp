@@ -34,36 +34,45 @@ void initial() {
   if (bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER)) {
     EEPROM.get<type::Real>(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::t.Ti);
     EEPROM.get<type::Real>(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::t.Td);
-    gtp::tune::k.Ki = gatlpt::minutes::Ki(gtp::parameter.Kp, gtp::tune::t.Ti);
-    gtp::tune::k.Kd = gatlpt::minutes::Kd(gtp::parameter.Kp, gtp::tune::t.Td);
   } else {
     EEPROM.get<type::Real>(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::k.Ki);
     EEPROM.get<type::Real>(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::k.Kd);
-    gtp::tune::t.Ti = gatlpt::minutes::Ti(gtp::parameter.Kp, gtp::tune::k.Ki);
-    gtp::tune::t.Td = gatlpt::minutes::Td(gtp::parameter.Kp, gtp::tune::k.Kd);
   }
   EEPROM.get<double>(
     GOS_TC_EEPROM_INDEX_MIN_SENS,
-    gt::sensor::max6675sensor.Range.lowest);
+    gt::sensor::temperature.Range.lowest);
   EEPROM.get<double>(
     GOS_TC_EEPROM_INDEX_MAX_SENS,
-    gt::sensor::max6675sensor.Range.highest);
+    gt::sensor::temperature.Range.highest);
+  EEPROM.get<type::Unsigned>(
+    GOS_TC_EEPROM_INDEX_TIME_TUNE,
+    gtv::pid::tune::time::unit);
 
   if (gtvi::interval == 0) {
     gtvi::interval = gtval::defaultval::timing::Interval;
     EEPROM.put<type::Unsigned>(GOS_TC_EEPROM_INDEX_INTERVAL, gtvi::interval);
   }
-  if (gt::sensor::max6675sensor.Range.highest <= 0.0) {
-    gt::sensor::max6675sensor.Range.highest = gtval::defaultval::MaxSensorRange;
+  if (gt::sensor::temperature.Range.highest <= 0.0) {
+    gt::sensor::temperature.Range.highest = gtval::defaultval::MaxSensorRange;
     EEPROM.put<type::Unsigned>(
       GOS_TC_EEPROM_INDEX_MAX_SENS,
-      gt::sensor::max6675sensor.Range.highest);
+      gt::sensor::temperature.Range.highest);
   }
-
-  gt::pid::parameter.PonE = bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_PONE);
 }
 
 } // namespace retrieve
+
+namespace tune {
+void restore() {
+  if (bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER)) {
+    EEPROM.put<type::Real>(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::t.Ti);
+    EEPROM.put<type::Real>(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::t.Td);
+  } else {
+    EEPROM.put<type::Real>(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::k.Ki);
+    EEPROM.put<type::Real>(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::k.Kd);
+  }
+}
+} // namespace tune
 
 } // namespace eeprom
 } // namespace temperature

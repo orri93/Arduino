@@ -41,8 +41,9 @@
 |  40005 |  0x0004 |    2 | Real     | PID        | Kp       | The PID Kp                |
 |  40007 |  0x0006 |    2 | Real     | PID        | Ki/Ti    | The PID Ki/Ti             |
 |  40009 |  0x0008 |    2 | Real     | PID        | Kd/Td    | The PID Kd/Td             |
-|  40011 |  0x000A |    2 | Double   | Range      | Min sens | The min range for the sens|
-|  40013 |  0x000C |    2 | Double   | Range      | Max sens | The max range for the sens|
+|  40011 |  0x000A |    2 | Double   | Range      | MinSens  | The min range for the sens|
+|  40013 |  0x000C |    2 | Double   | Range      | MaxSens  | The max range for the sens|
+|  40015 |  0x000E |    1 | Unsigned | PID tune   | TimeTune | Time tune                 |
 
 ### EEPROM
 
@@ -64,6 +65,20 @@
 |-----:|-------------|---------------------------|
 |    1 | Temperature | The measured temperature  |
 |    2 |             | The last command line     |
+
+### PID
+
+#### Time tune
+
+LowByte is the PID tune time unit
+HighByte is the PID time tune variable time unit
+
+| Value | Name         | Description               |
+|------:|--------------|---------------------------|
+|     0 | Default      | Use factory setting       |
+|     1 | Milliseconds | Time tuning are in ms     |
+|     2 | Seconds      | Time tuning are in s      |
+|     1 | Minutes      | Time tuning are in min    |
 
 ### Build
 
