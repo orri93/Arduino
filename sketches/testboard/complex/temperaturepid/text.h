@@ -15,6 +15,13 @@
 #define GOS_TCT_CENTIGRADE   "C"
 #define GOS_TCT_BELOW_RANGE  "L"
 #define GOS_TCT_ABOVE_RANGE  "H"
+#define GOS_TCT_KP           "KP"
+#define GOS_TCT_KI           "KI"
+#define GOS_TCT_KD           "KD"
+#define GOS_TCT_TI           "TI"
+#define GOS_TCT_TD           "TD"
+#define GOS_TCT_MIN_SENS     "MinS"
+#define GOS_TCT_MAX_SENS     "MaxS"
 
 #ifdef UNUSED
 namespace gos {

@@ -18,6 +18,13 @@ extern Holder interval;
 extern Holder manual;
 extern Holder setpoint;
 extern Holder temperature;
+extern Holder kp;
+extern Holder ki;
+extern Holder kd;
+extern Holder ti;
+extern Holder td;
+extern Holder minsens;
+extern Holder maxsens;
 namespace unit {
 namespace degree {
 extern Holder centigrade;

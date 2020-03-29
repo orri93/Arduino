@@ -10,17 +10,8 @@ Parameter parameter;
 Variable variable;
 
 namespace tune {
-#ifdef PID_STORE_TIME_TUNE
-Tune t;
-namespace calculated {
 Tune k;
-} // namespace calculated
-#else
-gt::pid::tune::Tune k;
-namespace calculated {
-gt::pid::tune::Tune t;
-} // namespace calculated
-#endif
+TimeTune t;
 } // namespace tune
 
 } // namespace pid

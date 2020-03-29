@@ -16,7 +16,7 @@
 | Number | Address | Section | Variable | Description    |
 |-------:|--------:|---------|----------|----------------|
 |  00001 |  0x0000 | PID     | PonE     | The PID P on E |
-
+|  00002 |  0x0001 | PID     | Tune     | Tune with time |
 
 #### Discrete Input
 
@@ -29,7 +29,6 @@
 | Number | Address | Size | Type     | Section     | Variable    | Description                     |
 |-------:|--------:|-----:|----------|-------------|-------------|---------------------------------|
 |  30001 |  0x0000 |    1 | Unsigned | Controller  | Output      | The Manual or Controller output |
-|  30002 |  0x0001 |    2 | Real     | Measurement | Temperature | The Measured Temperature in °C  |
 |  30002 |  0x0001 |    2 | Real     | Measurement | Temperature | The Measured Temperature in °C  |
 
 #### Holding Registry

@@ -20,7 +20,6 @@
 #include "eeprom.h"
 #include "modbus.h"
 #include "format.h"
-#include "binding.h"
 #include "display.h"
 #include "variable.h"
 #include "fds-celsius-logo.h"
@@ -45,8 +44,6 @@ void setup() {
 #endif
 
   gt::format::initialize();
-
-  gt::binding::create();
 
   gt::eeprom::retrieve::initial();
 
