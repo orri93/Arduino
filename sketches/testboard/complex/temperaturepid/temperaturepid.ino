@@ -42,12 +42,14 @@ void setup() {
 #endif
 #endif
 
-  gt::format::initialize();
-
   gt::eeprom::retrieve::initial();
 
+  gt::format::initialize();
+
   gt::pid::parameter.PonE = bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_PONE);
+  gt::pid::create();
   gt::pid::tune::calculate();
+  gt::pid::tune::time();
   gt::pid::tune::tunings();
 
   gt::sensor::temperature.begin();
@@ -83,6 +85,17 @@ void loop() {
 
   if (gatl::tick::is::next<GATL_TICK_DEFAULT_TYPE, gt::type::Unsigned>(
       gtvi::next, gtvi::tick, gtvi::interval)) {
+    switch (gtv::force) {
+    case GOT_PI_TUNE_TIME_FORCE_IDLE:
+      gtv::status = gt::type::Status::idle;
+      break;
+    case GOT_PI_TUNE_TIME_FORCE_MANUAL:
+      gtv::status = gt::type::Status::manual;
+      break;
+    case GOT_PI_TUNE_TIME_FORCE_AUTO:
+      gtv::status = gt::type::Status::automatic;
+      break;
+    }
     if(gtv::status == gt::type::Status::automatic) {
       digitalWrite(PIN_LED_BLUE, HIGH);
     }

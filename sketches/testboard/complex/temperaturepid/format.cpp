@@ -28,6 +28,8 @@ GOS_TEXT_BUFFER(ti, GOS_TCT_TI);
 GOS_TEXT_BUFFER(td, GOS_TCT_TD);
 GOS_TEXT_BUFFER(minsens, GOS_TCT_MIN_SENS);
 GOS_TEXT_BUFFER(maxsens, GOS_TCT_MAX_SENS);
+GOS_TEXT_BUFFER(tunetimeunit, GOS_TCT_TUNE_TIME);
+GOS_TEXT_BUFFER(force, GOS_TCT_FORCE);
 namespace unit {
 namespace degree {
 GOS_TEXT_BUFFER(centigrade, GOS_TCT_CENTIGRADE);
@@ -42,10 +44,16 @@ GOS_TEXT_BUFFER(aboverange, GOS_TCT_ABOVE_RANGE);
 } // namespace display
 
 namespace real {
-gatlf::option::Number option;
+::gos::atl::format::option::Number temperature;
+::gos::atl::format::option::Number setpoint;
+::gos::atl::format::option::Number tune;
 }
 
 void initialize() {
+  gt::format::real::temperature.Precision = 2;
+  gt::format::real::setpoint.Precision = 2;
+  gt::format::real::tune.Precision = 3;
+
   gt::format::display::buffer::first.Buffer[0] = '\0';
   gt::format::display::buffer::second.Buffer[0] = '\0';
 }

@@ -10,6 +10,8 @@ namespace variables {
 
 type::Status status = type::Status::idle;
 
+type::Unsigned force = GOT_PI_TUNE_TIME_FORCE_OFF;
+
 type::Unsigned output = gt::value::zero::Unsigned;
 type::Real temperature = gt::value::zero::Real;
 
@@ -36,9 +38,10 @@ type::Unsigned unit = GOT_PI_TUNE_TIME_UNIT_DEFAULT;
 }
 
 namespace temporary {
-bool boolean;
-type::Unsigned integer;
-type::Real real;
+bool boolean = false;
+uint8_t byte = 0;
+type::Unsigned integer = gt::value::zero::Unsigned;
+type::Real real = gt::value::zero::Real;
 } // namespace temporary
 
 } // namespace variables

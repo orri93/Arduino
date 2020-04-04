@@ -25,6 +25,8 @@ extern Holder ti;
 extern Holder td;
 extern Holder minsens;
 extern Holder maxsens;
+extern Holder tunetimeunit;
+extern Holder force;
 namespace unit {
 namespace degree {
 extern Holder centigrade;
@@ -39,7 +41,9 @@ extern Holder aboverange;
 } // namespace display
 
 namespace real {
-extern ::gos::atl::format::option::Number option;
+extern ::gos::atl::format::option::Number temperature;
+extern ::gos::atl::format::option::Number setpoint;
+extern ::gos::atl::format::option::Number tune;
 }
 
 void initialize();

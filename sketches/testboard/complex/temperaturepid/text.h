@@ -22,6 +22,8 @@
 #define GOS_TCT_TD           "TD"
 #define GOS_TCT_MIN_SENS     "MinS"
 #define GOS_TCT_MAX_SENS     "MaxS"
+#define GOS_TCT_TUNE_TIME    "TT"
+#define GOS_TCT_FORCE        "Force"
 
 #ifdef UNUSED
 namespace gos {

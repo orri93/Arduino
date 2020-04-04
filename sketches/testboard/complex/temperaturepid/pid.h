@@ -18,6 +18,9 @@ typedef ::gos::atl::pid::Variable<::gos::temperature::type::Real> Variable;
 extern Parameter parameter;
 extern Variable variable;
 
+void create();
+void initialize();
+
 namespace tune {
 typedef ::gos::atl::pid::Tune<::gos::temperature::type::Real> Tune;
 typedef ::gos::atl::pid::TimeTune<::gos::temperature::type::Real> TimeTune;
@@ -25,6 +28,7 @@ extern Tune k;
 extern TimeTune t;
 void calculate();
 void tunings();
+void time();
 } // namespace tune
 
 } // namespace pid

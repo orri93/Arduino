@@ -42,7 +42,11 @@ const char* SensorDs18b20::error(uint8_t& length) {
 SensorDs18b20 temperature;
 
 #else
-SensorMax6675::SensorMax6675() : max6675_(nullptr) {
+SensorMax6675::SensorMax6675() :
+  max6675_(nullptr) {
+  TypedSensor::Code = 0;
+  TypedSensor::Value = 0.0;
+  TypedSensor::Last = gatl::sensor::Status::Undefined;
 }
 
 void SensorMax6675::begin() {
@@ -52,12 +56,12 @@ void SensorMax6675::begin() {
 }
 
 gatl::sensor::Status SensorMax6675::measure() {
-  if (max6675_->read(Value)) {
-    if ((!isnan(Value)) && (!isinf(Value))) {
-      return (Last = check());
+  if (max6675_->read(TypedSensor::Value)) {
+    if ((!isnan(TypedSensor::Value)) && (!isinf(TypedSensor::Value))) {
+      return (TypedSensor::Last = check());
     } 
   } 
-  return Last = gatl::sensor::Status::Fault;
+  return TypedSensor::Last = gatl::sensor::Status::Fault;
 }
 
 const char* SensorMax6675::error(uint8_t& length) {
@@ -68,15 +72,24 @@ SensorMax6675 temperature;
 #endif
 
 gatl::sensor::Status read() {
-  gatl::sensor::Status result = temperature.measure();
-  gtv::temperature = static_cast<type::Real>(temperature.Value);
+  temperature.measure();
+  switch (temperature.Last) {
+  case gatl::sensor::Status::Operational:
+  case gatl::sensor::Status::BelowRange:
+  case gatl::sensor::Status::AboveRange:
+    gtv::temperature = temperature.Value;
+    break;
+  default:
+    gtv::temperature = 0.0;
+    break;
+  }
 #ifndef NO_DISPLAY
-  switch (result) {
+  switch (temperature.Last) {
   case gatl::sensor::Status::Operational:
     gatl::format::real<type::Real, uint8_t>(
       gtfdb::first,
       gtv::temperature,
-      gtf::real::option,
+      gtf::real::temperature,
       &gtfdb::text::temperature,
       &gtfdb::text::unit::degree::centigrade);
     break;
@@ -84,7 +97,7 @@ gatl::sensor::Status read() {
     gatl::format::real<type::Real, uint8_t>(
       gtfdb::first,
       gtv::temperature,
-      gtf::real::option,
+      gtf::real::temperature,
       &gtfdb::text::temperature,
       &gtfdb::text::codes::belowrange);
     break;
@@ -92,11 +105,11 @@ gatl::sensor::Status read() {
     gatl::format::real<type::Real, uint8_t>(
       gtfdb::first,
       gtv::temperature,
-      gtf::real::option,
+      gtf::real::temperature,
       &gtfdb::text::temperature,
       &gtfdb::text::codes::aboverange);
     break;
-  case gatl::sensor::Status::Fault:
+  default:
     gt::sensor::error::message = temperature.error(gt::sensor::error::length);
     if (gt::sensor::error::length > 0) {
       gatl::format::message(
@@ -114,7 +127,7 @@ gatl::sensor::Status read() {
     break;
   }
 #endif
-  return result;
+  return temperature.Last;
 }
 
 namespace error {

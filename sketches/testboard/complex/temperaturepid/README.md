@@ -30,6 +30,9 @@
 |-------:|--------:|-----:|----------|-------------|-------------|---------------------------------|
 |  30001 |  0x0000 |    1 | Unsigned | Controller  | Output      | The Manual or Controller output |
 |  30002 |  0x0001 |    2 | Real     | Measurement | Temperature | The Measured Temperature in °C  |
+|  30004 |  0x0003 |    2 | Real     | PID         | Ti          | The Ki * time from the tuning   |
+|  30006 |  0x0005 |    2 | Real     | PID         | Td          | The Kd / time from the tuning   |
+|  30008 |  0x0007 |    2 | Real     | PID         | Output sum  | The internal output sum         |
 
 #### Holding Registry
 
@@ -44,6 +47,7 @@
 |  40011 |  0x000A |    2 | Double   | Range      | MinSens  | The min range for the sens|
 |  40013 |  0x000C |    2 | Double   | Range      | MaxSens  | The max range for the sens|
 |  40015 |  0x000E |    1 | Unsigned | PID tune   | TimeTune | Time tune                 |
+|  40016 |  0x000F |    1 | Unsigned | Force      | Force    | Force mode                |
 
 ### EEPROM
 

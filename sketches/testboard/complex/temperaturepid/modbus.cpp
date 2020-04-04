@@ -16,10 +16,13 @@
 #include "text.h"
 #include "pid.h"
 
-#define GOS_TC_COIL_COUNT         8
+#define GOS_TC_COIL_COUNT    0x0008
 
 #define GOS_TC_IRA_OUTPUT    0x0000
 #define GOS_TC_IRA_TEMP      0x0001
+#define GOS_TC_IRA_TI        0x0003
+#define GOS_TC_IRA_TD        0x0005
+#define GOS_TC_IRA_OUT_SUM   0x0007
 
 #define GOS_TC_HRA_INTERVAL  0x0000
 #define GOS_TC_HRA_MANUAL    0x0001
@@ -30,6 +33,7 @@
 #define GOS_TC_HRA_MIN_SENS  0x000A
 #define GOS_TC_HRA_MAX_SENS  0x000C
 #define GOS_TC_HRA_TIME_TUNE 0x000E
+#define GOS_TC_HRA_FORCE     0x000F
 
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
@@ -46,6 +50,7 @@ namespace gtvi = ::gos::temperature::variables::timing;
 namespace gtvm = ::gos::temperature::variables::modbus;
 namespace gtvc = ::gos::temperature::variables::controller;
 namespace gtvt = ::gos::temperature::variables::temporary;
+namespace gtvptt = ::gos::temperature::variables::pid::tune::time;
 namespace gtfdb = ::gos::temperature::format::display::buffer;
 namespace gtf = ::gos::temperature::format;
 
@@ -268,6 +273,17 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadHoldingRegisters(
     MODBUS_WRITE_UINT16_AT0(location, gtv::pid::tune::time::unit);
     result = MODBUS_STATUS_OK;
   }
+  if (location = gatl::modbus::provide::buffer::location<MODBUS_TYPE_DEFAULT>(
+    gtm::variable,
+    gtm::buffer::request,
+    gtm::buffer::response,
+    GOS_TC_HRA_FORCE,
+    1,
+    address,
+    length)) {
+    MODBUS_WRITE_UINT16_AT0(location, gtv::force);
+    result = MODBUS_STATUS_OK;
+  }
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return result;
 }
@@ -308,6 +324,62 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadInputRegisters(
     MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     result = MODBUS_STATUS_OK;
   }
+#ifdef GOS_TPID_INT_PID_INP_REG
+  if (location = gatl::modbus::provide::buffer::location<MODBUS_TYPE_DEFAULT>(
+    gtm::variable,
+    gtm::buffer::request,
+    gtm::buffer::response,
+    GOS_TC_IRA_TI,
+    2,
+    address,
+    length)) {
+    gt::variables::temporary::integer =
+      gatl::utility::number::part::first<uint16_t, type::Real>(
+        gt::pid::variable.KiTimesTime);
+    MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
+    gt::variables::temporary::integer =
+      gatl::utility::number::part::second<uint16_t, type::Real>(
+        gt::pid::variable.KiTimesTime);
+    MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
+    result = MODBUS_STATUS_OK;
+  }
+  if (location = gatl::modbus::provide::buffer::location<MODBUS_TYPE_DEFAULT>(
+    gtm::variable,
+    gtm::buffer::request,
+    gtm::buffer::response,
+    GOS_TC_IRA_TD,
+    2,
+    address,
+    length)) {
+    gt::variables::temporary::integer =
+      gatl::utility::number::part::first<uint16_t, type::Real>(
+        gt::pid::variable.KdDividedByTime);
+    MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
+    gt::variables::temporary::integer =
+      gatl::utility::number::part::second<uint16_t, type::Real>(
+        gt::pid::variable.KdDividedByTime);
+    MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
+    result = MODBUS_STATUS_OK;
+  }
+  if (location = gatl::modbus::provide::buffer::location<MODBUS_TYPE_DEFAULT>(
+    gtm::variable,
+    gtm::buffer::request,
+    gtm::buffer::response,
+    GOS_TC_IRA_OUT_SUM,
+    2,
+    address,
+    length)) {
+    gt::variables::temporary::integer =
+      gatl::utility::number::part::first<uint16_t, type::Real>(
+        gt::pid::variable.OutputSum);
+    MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
+    gt::variables::temporary::integer =
+      gatl::utility::number::part::second<uint16_t, type::Real>(
+        gt::pid::variable.OutputSum);
+    MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
+    result = MODBUS_STATUS_OK;
+  }
+#endif
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return result;
 }
@@ -328,7 +400,8 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
       } else {
         bitClear(gt::variables::modbus::coils, address + i);
       }
-      if (address + i == GOS_TCV_COIL_BIT_PONE) {
+      switch (address + i) {
+      case GOS_TCV_COIL_BIT_PONE:
         gtvt::boolean = bitRead(gtvm::coils, GOS_TCV_COIL_BIT_PONE);
         if (gtvt::boolean != gt::pid::parameter.PonE) {
           gt::pid::parameter.PonE = gtvt::boolean;
@@ -341,7 +414,8 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
             displayed = true;
           }
         }
-      } else if (address + i == GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) {
+        break;
+      case GOS_TCV_COIL_BIT_TUNE_TIME_MASTER:
         gtvt::boolean = bitRead(gtvm::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER);
         if (bitRead(last, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) != gtvt::boolean) {
           if (!displayed) {
@@ -354,8 +428,10 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
           }
           gt::pid::tune::calculate();
           gt::pid::tune::tunings();
+          gt::pid::tune::time();
           gt::eeprom::tune::restore();
         }
+        break;
       }
     } else {
       result = MODBUS_STATUS_ILLEGAL_DATA_ADDRESS;
@@ -378,6 +454,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
   const MODBUS_TYPE_FUNCTION& function,
   const MODBUS_TYPE_DEFAULT& address,
   const MODBUS_TYPE_DEFAULT& length) {
+  bool start = false;
   bool displayed = false;
   bool calculatetime = false;
   MODBUS_TYPE_BUFFER* location;
@@ -430,10 +507,10 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
           gatl::format::real<type::Real, uint8_t>(
             gtfdb::second,
             gtp::parameter.Setpoint,
-            gtf::real::option,
+            gtf::real::setpoint,
             &gtfdb::text::setpoint,
             &gtfdb::text::unit::degree::centigrade);
-          gt::variables::status = gt::type::Status::automatic;
+          start = true;
           displayed = true;
         }
       } else {
@@ -452,6 +529,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
     length)) {
     gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
     if (gt::variables::temporary::integer != gt::variables::timing::interval) {
+      calculatetime = true;
       gt::variables::timing::interval = gt::variables::temporary::integer;
       EEPROM.put<type::Unsigned>(GOS_TC_EEPROM_INDEX_INTERVAL, gtvi::interval);
       if (!displayed) {
@@ -484,7 +562,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
         gatl::format::real<type::Real, uint8_t>(
           gtfdb::second,
           gtp::parameter.Kp,
-          gtf::real::option,
+          gtf::real::tune,
           &gtfdb::text::kp);
         displayed = true;
       }
@@ -510,7 +588,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
           gatl::format::real<type::Real, uint8_t>(
             gtfdb::second,
             gtp::tune::t.Ti,
-            gtf::real::option,
+            gtf::real::tune,
             &gtfdb::text::ti);
           displayed = true;
         }
@@ -524,7 +602,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
           gatl::format::real<type::Real, uint8_t>(
             gtfdb::second,
             gtp::tune::k.Ki,
-            gtf::real::option,
+            gtf::real::tune,
             &gtfdb::text::ki);
           displayed = true;
         }
@@ -551,7 +629,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
           gatl::format::real<type::Real, uint8_t>(
             gtfdb::second,
             gtp::tune::t.Td,
-            gtf::real::option,
+            gtf::real::tune,
             &gtfdb::text::td);
           displayed = true;
         }
@@ -565,7 +643,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
           gatl::format::real<type::Real, uint8_t>(
             gtfdb::second,
             gtp::tune::k.Kd,
-            gtf::real::option,
+            gtf::real::tune,
             &gtfdb::text::kd);
           displayed = true;
         }
@@ -593,7 +671,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
           gatl::format::real<type::Real, uint8_t>(
             gtfdb::second,
             gt::sensor::temperature.Range.lowest,
-            gtf::real::option,
+            gtf::real::temperature,
             &gtfdb::text::minsens);
           displayed = true;
         }
@@ -618,14 +696,71 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
       if (gtvt::real > gt::sensor::temperature.Range.lowest) {
         gt::sensor::temperature.Range.highest = gtvt::real;
         EEPROM.put<double>(
-          GOS_TC_EEPROM_INDEX_MIN_SENS,
+          GOS_TC_EEPROM_INDEX_MAX_SENS,
           gt::sensor::temperature.Range.highest);
         if (!displayed) {
           gatl::format::real<type::Real, uint8_t>(
             gtfdb::second,
             gt::sensor::temperature.Range.highest,
-            gtf::real::option,
+            gtf::real::temperature,
             &gtfdb::text::maxsens);
+          displayed = true;
+        }
+      } else {
+        result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
+        goto gos_modbus_handler_write_holding_registers_finaly;
+      }
+    }
+    result = MODBUS_STATUS_OK;
+  }
+  if (location = gatl::modbus::access::buffer::location(
+    gtm::variable,
+    gtm::buffer::request,
+    GOS_TC_HRA_TIME_TUNE,
+    1,
+    address,
+    length)) {
+    gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
+    if (gtv::temporary::integer != gtv::pid::tune::time::unit) {
+      gtv::temporary::byte = lowByte(gtv::temporary::integer);
+      if (gtv::temporary::byte > GOT_PI_TUNE_TIME_UNIT_MAXIMUM) {
+        result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
+        goto gos_modbus_handler_write_holding_registers_finaly;
+      }
+      gtv::temporary::byte = highByte(gtv::temporary::integer);
+      if (gtv::temporary::byte > GOT_PI_TUNE_TIME_UNIT_MAXIMUM) {
+        result = MODBUS_STATUS_ILLEGAL_DATA_VALUE;
+        goto gos_modbus_handler_write_holding_registers_finaly;
+      }
+      calculatetime = true;
+      gtv::pid::tune::time::unit = gt::variables::temporary::integer;
+      EEPROM.put<type::Unsigned>(GOS_TC_EEPROM_INDEX_TIME_TUNE, gtvptt::unit);
+      if (!displayed) {
+        gatl::format::integer<type::Unsigned, uint8_t>(
+          gtfdb::second,
+          gtv::pid::tune::time::unit,
+          &gt::format::display::buffer::text::tunetimeunit);
+        displayed = true;
+      }
+    }
+    result = MODBUS_STATUS_OK;
+  }
+  if (location = gatl::modbus::access::buffer::location(
+    gtm::variable,
+    gtm::buffer::request,
+    GOS_TC_HRA_FORCE,
+    1,
+    address,
+    length)) {
+    gt::variables::temporary::integer = MODBUS_READ_UINT16_AT0(location);
+    if (gtv::temporary::integer != gtv::force) {
+      if (gtv::temporary::integer <= GOT_PI_TUNE_TIME_FORCE_MAXIMUM) {
+        gtv::force = gt::variables::temporary::integer;
+        if (!displayed) {
+          gatl::format::integer<type::Unsigned, uint8_t>(
+            gtfdb::second,
+            gtv::force,
+            &gt::format::display::buffer::text::force);
           displayed = true;
         }
       } else {
@@ -638,7 +773,12 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteHoldingRegisters(
 gos_modbus_handler_write_holding_registers_finaly:
   if (calculatetime) {
     gt::pid::tune::calculate();
+    gt::pid::tune::time();
     gt::pid::tune::tunings();
+  }
+  if (start) {
+    gt::variables::status = gt::type::Status::automatic;
+    gt::pid::initialize();
   }
   if (displayed) {
     gt::display::two.display(gtfdb::first, gtfdb::second);

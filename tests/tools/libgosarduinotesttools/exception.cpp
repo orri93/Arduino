@@ -8,7 +8,7 @@ namespace test {
 namespace tools {
 exception::exception(const char* what) {
   std::strstream s;
-  s << "DrillLink tool error: " << what << std::ends;
+  s << "Arduino test tool error: " << what << std::ends;
   what_ = s.str();
 }
 #if _MSC_VER >= 1910

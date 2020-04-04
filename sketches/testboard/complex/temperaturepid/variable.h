@@ -10,12 +10,21 @@
 #define GOT_PI_TUNE_TIME_UNIT_MILLISECONDS  1
 #define GOT_PI_TUNE_TIME_UNIT_SECONDS       2
 #define GOT_PI_TUNE_TIME_UNIT_MINUTES       3
+#define GOT_PI_TUNE_TIME_UNIT_MAXIMUM       3
+
+#define GOT_PI_TUNE_TIME_FORCE_OFF          0
+#define GOT_PI_TUNE_TIME_FORCE_IDLE         1
+#define GOT_PI_TUNE_TIME_FORCE_MANUAL       2
+#define GOT_PI_TUNE_TIME_FORCE_AUTO         3
+#define GOT_PI_TUNE_TIME_FORCE_MAXIMUM      3
 
 namespace gos {
 namespace temperature {
 namespace variables {
 
 extern type::Status status;
+
+extern type::Unsigned force;
 
 extern type::Unsigned output;
 extern type::Real temperature;
@@ -44,6 +53,7 @@ extern type::Unsigned unit;
 
 namespace temporary {
 extern bool boolean;
+extern uint8_t byte;
 extern type::Unsigned integer;
 extern type::Real real;
 } // namespace temporary
