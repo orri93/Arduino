@@ -11,8 +11,8 @@ option(GOS_ARDUINO_SKETCHES_PACKAGE_TESTS "Build tests" ON)
 option(GOS_ARDUINO_TOOLS "Build tools" ON)
 option(GOS_ARDUINO_TEST_TOOLS "Build test tools" ON)
 option(GOS_ARDUINO_BUILD_DOC "Build Documentation" OFF)
-
 option(GOS_BUILD_ARDUINO_SKETCHES "Build Arduino sketches for testing" ON)
+option(GOS_PID_TOOLKIT "Build PID Toolkit" ON)
 
 set(gos_arduino_include_dir
   "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -108,6 +108,23 @@ if (GOS_ARDUINO_TOOLS)
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/default.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/types.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/text.h")
+endif ()
+
+if (GOS_PID_TOOLKIT)
+  set(libpidtoolkit_target libpidtoolkit)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/pid/toolkit/version.h.in"
+    "include/gos/pid/toolkit/version.h"
+    @ONLY)
+  set(gos_pid_toolkit_version_include_file
+    "${CMAKE_CURRENT_BINARY_DIR}/include/gos/pid/toolkit/version.h")
+  list(APPEND libpidtoolkit_public_header
+    "${gos_pid_toolkit_version_include_file}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/pid/toolkit/exception.h")
+  list(APPEND libpidtoolkit_include
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_BINARY_DIR}/include")
+  set(gos_build_dependency_boost ON)
 endif ()
 
 if (GOS_ARDUINO_TEST_TOOLS)
@@ -210,6 +227,8 @@ if (GOS_ARDUINO_BUILD_DOC)
       "Doxygen needs to be installed to generate the documentation.")
   endif ()
 endif ()
+
+add_subdirectory(pid)
 
 message(STATUS "")
 message(STATUS "Arduino Folder BUILD SUMMARY")
