@@ -100,3 +100,6 @@
 [submodule "libraries/Arduino-Temperature-Control-Library"]
 	path = libraries/Arduino-Temperature-Control-Library
 	url = https://github.com/milesburton/Arduino-Temperature-Control-Library.git
+[submodule "extern/pidtoolkit"]
+	path = extern/pidtoolkit
+	url = git@github.com:orri93/pidtoolkit.git

@@ -1,4 +1,6 @@
-/.vscode/
+[Dd]ebug/
+[Rr]elease/
+.vscode/
 CMakeSettings.json
 .qmake.stash
 *.stackdump
