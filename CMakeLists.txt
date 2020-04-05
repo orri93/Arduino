@@ -111,20 +111,9 @@ if (GOS_ARDUINO_TOOLS)
 endif ()
 
 if (GOS_PID_TOOLKIT)
-  set(libpidtoolkit_target libpidtoolkit)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/pid/toolkit/version.h.in"
-    "include/gos/pid/toolkit/version.h"
-    @ONLY)
-  set(gos_pid_toolkit_version_include_file
-    "${CMAKE_CURRENT_BINARY_DIR}/include/gos/pid/toolkit/version.h")
-  list(APPEND libpidtoolkit_public_header
-    "${gos_pid_toolkit_version_include_file}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/pid/toolkit/exception.h")
-  list(APPEND libpidtoolkit_include
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_BINARY_DIR}/include")
-  set(gos_build_dependency_boost ON)
+  set(GOS_PID_TOOLKIT_INSTRUCT_GOOGLE_TEST_PATH 
+    "${gos_arduino_unit_testing_dir}/extern/googletest")
+  add_subdirectory(extern/pidtoolkit)
 endif ()
 
 if (GOS_ARDUINO_TEST_TOOLS)
@@ -227,8 +216,6 @@ if (GOS_ARDUINO_BUILD_DOC)
       "Doxygen needs to be installed to generate the documentation.")
   endif ()
 endif ()
-
-add_subdirectory(pid)
 
 message(STATUS "")
 message(STATUS "Arduino Folder BUILD SUMMARY")
