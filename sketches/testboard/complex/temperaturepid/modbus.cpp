@@ -16,24 +16,27 @@
 #include "text.h"
 #include "pid.h"
 
-#define GOS_TC_COIL_COUNT    0x0008
+#define GOS_TC_COIL_COUNT     0x0008
 
-#define GOS_TC_IRA_OUTPUT    0x0000
-#define GOS_TC_IRA_TEMP      0x0001
-#define GOS_TC_IRA_TI        0x0003
-#define GOS_TC_IRA_TD        0x0005
-#define GOS_TC_IRA_OUT_SUM   0x0007
+#define GOS_TC_IRA_OUTPUT     0x0000
+#define GOS_TC_IRA_TEMP       0x0001
+#define GOS_TC_IRA_TI         0x0003
+#define GOS_TC_IRA_TD         0x0005
+#define GOS_TC_IRA_OUT_SUM    0x0007
+#define GOS_TC_IRA_ERROR      0x0003
+#define GOS_TC_IRA_INTEGRAL   0x0005
+#define GOS_TC_IRA_DERIVATIVE 0x0007
 
-#define GOS_TC_HRA_INTERVAL  0x0000
-#define GOS_TC_HRA_MANUAL    0x0001
-#define GOS_TC_HRA_SETPOINT  0x0002
-#define GOS_TC_HRA_KP        0x0004
-#define GOS_TC_HRA_I         0x0006
-#define GOS_TC_HRA_D         0x0008
-#define GOS_TC_HRA_MIN_SENS  0x000A
-#define GOS_TC_HRA_MAX_SENS  0x000C
-#define GOS_TC_HRA_TIME_TUNE 0x000E
-#define GOS_TC_HRA_FORCE     0x000F
+#define GOS_TC_HRA_INTERVAL   0x0000
+#define GOS_TC_HRA_MANUAL     0x0001
+#define GOS_TC_HRA_SETPOINT   0x0002
+#define GOS_TC_HRA_KP         0x0004
+#define GOS_TC_HRA_I          0x0006
+#define GOS_TC_HRA_D          0x0008
+#define GOS_TC_HRA_MIN_SENS   0x000A
+#define GOS_TC_HRA_MAX_SENS   0x000C
+#define GOS_TC_HRA_TIME_TUNE  0x000E
+#define GOS_TC_HRA_FORCE      0x000F
 
 namespace gatl = ::gos::atl;
 namespace gatlu = ::gos::atl::utility;
@@ -329,17 +332,17 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadInputRegisters(
     gtm::variable,
     gtm::buffer::request,
     gtm::buffer::response,
-    GOS_TC_IRA_TI,
+    GOS_TC_IRA_ERROR,
     2,
     address,
     length)) {
     gt::variables::temporary::integer =
       gatl::utility::number::part::first<uint16_t, type::Real>(
-        gt::pid::variable.KiTimesTime);
+        gt::pid::variable.Error);
     MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
     gt::variables::temporary::integer =
       gatl::utility::number::part::second<uint16_t, type::Real>(
-        gt::pid::variable.KiTimesTime);
+        gt::pid::variable.Error);
     MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     result = MODBUS_STATUS_OK;
   }
@@ -347,17 +350,17 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadInputRegisters(
     gtm::variable,
     gtm::buffer::request,
     gtm::buffer::response,
-    GOS_TC_IRA_TD,
+    GOS_TC_IRA_INTEGRAL,
     2,
     address,
     length)) {
     gt::variables::temporary::integer =
       gatl::utility::number::part::first<uint16_t, type::Real>(
-        gt::pid::variable.KdDividedByTime);
+        gt::pid::variable.Integral);
     MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
     gt::variables::temporary::integer =
       gatl::utility::number::part::second<uint16_t, type::Real>(
-        gt::pid::variable.KdDividedByTime);
+        gt::pid::variable.Integral);
     MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     result = MODBUS_STATUS_OK;
   }
@@ -365,17 +368,17 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadInputRegisters(
     gtm::variable,
     gtm::buffer::request,
     gtm::buffer::response,
-    GOS_TC_IRA_OUT_SUM,
+    GOS_TC_IRA_DERIVATIVE,
     2,
     address,
     length)) {
     gt::variables::temporary::integer =
       gatl::utility::number::part::first<uint16_t, type::Real>(
-        gt::pid::variable.OutputSum);
+        gt::pid::variable.Derivative);
     MODBUS_WRITE_UINT16_AT0(location, gt::variables::temporary::integer);
     gt::variables::temporary::integer =
       gatl::utility::number::part::second<uint16_t, type::Real>(
-        gt::pid::variable.OutputSum);
+        gt::pid::variable.Derivative);
     MODBUS_WRITE_UINT16_AT0(location + 2, gt::variables::temporary::integer);
     result = MODBUS_STATUS_OK;
   }
@@ -401,6 +404,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
         bitClear(gt::variables::modbus::coils, address + i);
       }
       switch (address + i) {
+#ifdef SUPPORT_PONE
       case GOS_TCV_COIL_BIT_PONE:
         gtvt::boolean = bitRead(gtvm::coils, GOS_TCV_COIL_BIT_PONE);
         if (gtvt::boolean != gt::pid::parameter.PonE) {
@@ -415,6 +419,7 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
           }
         }
         break;
+#endif
       case GOS_TCV_COIL_BIT_TUNE_TIME_MASTER:
         gtvt::boolean = bitRead(gtvm::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER);
         if (bitRead(last, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER) != gtvt::boolean) {
@@ -427,7 +432,6 @@ MODBUS_TYPE_RESULT gtm::Handler::WriteCoils(
             displayed = true;
           }
           gt::pid::tune::calculate();
-          gt::pid::tune::tunings();
           gt::pid::tune::time();
           gt::eeprom::tune::restore();
         }
@@ -774,7 +778,6 @@ gos_modbus_handler_write_holding_registers_finaly:
   if (calculatetime) {
     gt::pid::tune::calculate();
     gt::pid::tune::time();
-    gt::pid::tune::tunings();
   }
   if (start) {
     gt::variables::status = gt::type::Status::automatic;

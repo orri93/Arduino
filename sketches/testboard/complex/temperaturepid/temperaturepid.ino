@@ -46,11 +46,12 @@ void setup() {
 
   gt::format::initialize();
 
+#ifdef SUPPORT_PONE
   gt::pid::parameter.PonE = bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_PONE);
+#endif
   gt::pid::create();
   gt::pid::tune::calculate();
   gt::pid::tune::time();
-  gt::pid::tune::tunings();
 
   gt::sensor::temperature.begin();
 
@@ -109,8 +110,15 @@ void loop() {
       case gatl::sensor::Status::Operational:
       case gatl::sensor::Status::BelowRange:
       case gatl::sensor::Status::AboveRange:
-        gtv::output = gatl::pid::compute<gt::type::Real, gt::type::Unsigned>(
-          gtv::temperature, gt::pid::variable, gt::pid::parameter);
+        gtv::output = gatl::pid::wiki::compute<
+          gt::type::Real,
+          gt::type::Unsigned,
+          gt::type::Real,
+          gt::type::Real>(
+            gtv::temperature,
+            gt::pid::variable,
+            gt::pid::parameter,
+            gt::pid::tune::k);
         break;
       default:
         gtv::output = 0;

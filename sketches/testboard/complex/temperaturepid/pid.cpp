@@ -20,11 +20,7 @@ void create() {
 }
 
 void initialize() {
-  gatl::pid::initialize(
-    gt::pid::variable,
-    gt::pid::parameter.Range,
-    gtv::temperature,
-    gtv::output);
+  gatl::pid::wiki::initialize(gt::pid::variable);
 }
 
 namespace tune {
@@ -63,45 +59,16 @@ void calculate() {
       t.Td = gatlpt::minutes::Td(gt::pid::parameter.Kp, k.Kd);
       break;
     }
+  }
+}
 
-  }
-}
-void tunings() {
-  if (bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER)) {
-    switch (highByte(gtv::pid::tune::time::unit)) {
-    case GOT_PI_TUNE_TIME_UNIT_DEFAULT:
-    case GOT_PI_TUNE_TIME_UNIT_MILLISECONDS:
-      gatlpt::milliseconds::tunings(gt::pid::variable, gt::pid::parameter, t);
-      break;
-    case GOT_PI_TUNE_TIME_UNIT_SECONDS:
-      gatlpt::seconds::tunings(gt::pid::variable, gt::pid::parameter, t);
-      break;
-    case GOT_PI_TUNE_TIME_UNIT_MINUTES:
-      gatlpt::minutes::tunings(gt::pid::variable, gt::pid::parameter, t);
-      break;
-    }
-  } else {
-    switch (highByte(gtv::pid::tune::time::unit)) {
-    case GOT_PI_TUNE_TIME_UNIT_DEFAULT:
-    case GOT_PI_TUNE_TIME_UNIT_MILLISECONDS:
-      gatlpt::milliseconds::tunings(gt::pid::variable, gt::pid::parameter, k);
-      break;
-    case GOT_PI_TUNE_TIME_UNIT_SECONDS:
-      gatlpt::seconds::tunings(gt::pid::variable, gt::pid::parameter, k);
-      break;
-    case GOT_PI_TUNE_TIME_UNIT_MINUTES:
-      gatlpt::minutes::tunings(gt::pid::variable, gt::pid::parameter, k);
-      break;
-    }
-  }
-}
 void time() {
   switch (highByte(gtv::pid::tune::time::unit)) {
-  case GOT_PI_TUNE_TIME_UNIT_DEFAULT:
   case GOT_PI_TUNE_TIME_UNIT_MILLISECONDS:
     gt::pid::parameter.Time = gtv::timing::interval;
     break;
   case GOT_PI_TUNE_TIME_UNIT_SECONDS:
+  case GOT_PI_TUNE_TIME_UNIT_DEFAULT:
     gt::pid::parameter.Time = gtv::timing::interval / 1000;
     break;
   case GOT_PI_TUNE_TIME_UNIT_MINUTES:

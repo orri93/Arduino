@@ -1,7 +1,5 @@
 #include <EEPROM.h>
 
-#include <gatlpid.h>
-
 #include "pid.h"
 #include "eeprom.h"
 #include "variable.h"

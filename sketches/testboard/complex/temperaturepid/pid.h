@@ -1,7 +1,7 @@
 #ifndef GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_PID_H_
 #define GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_PID_H_
 
-#include <gatlpid.h>
+#include <gatlpid2.h>
 
 #include "type.h"
 
@@ -9,11 +9,12 @@ namespace gos {
 namespace temperature {
 namespace pid {
 
-typedef ::gos::atl::pid::Parameter<
+typedef ::gos::atl::pid::wiki::Parameter<
   ::gos::temperature::type::Real,
   ::gos::temperature::type::Unsigned,
   ::gos::temperature::type::Real> Parameter;
-typedef ::gos::atl::pid::Variable<::gos::temperature::type::Real> Variable;
+typedef ::gos::atl::pid::wiki::Variable<
+  ::gos::temperature::type::Real> Variable;
 
 extern Parameter parameter;
 extern Variable variable;
