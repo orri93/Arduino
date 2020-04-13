@@ -11,28 +11,22 @@ namespace modbus {
 
 class Handler : public ::gos::atl::modbus::Handler<MODBUS_TYPE_DEFAULT> {
 public:
-#ifdef GOS_MODBUS_COILS_SUPPORTED
   MODBUS_TYPE_RESULT ReadCoils(
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
-#endif
-#ifdef GOS_MODBUS_DISCRETE_INPUTS_SUPPORTED
   MODBUS_TYPE_RESULT ReadDiscreteInputs(
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
-#endif
   MODBUS_TYPE_RESULT ReadHoldingRegisters(
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
   MODBUS_TYPE_RESULT ReadInputRegisters(
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
-#ifdef GOS_MODBUS_COILS_SUPPORTED
   MODBUS_TYPE_RESULT WriteCoils(
     const MODBUS_TYPE_FUNCTION& function,
     const MODBUS_TYPE_DEFAULT& address,
     const MODBUS_TYPE_DEFAULT& length);
-#endif
   MODBUS_TYPE_RESULT WriteHoldingRegisters(
     const MODBUS_TYPE_FUNCTION& function,
     const MODBUS_TYPE_DEFAULT& address,

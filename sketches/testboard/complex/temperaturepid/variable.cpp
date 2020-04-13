@@ -10,7 +10,7 @@ namespace variables {
 
 type::Status status = type::Status::idle;
 
-type::Unsigned force = GOT_PI_TUNE_TIME_FORCE_OFF;
+type::Unsigned force = GOT_PI_FORCE_OFF;
 
 type::Unsigned output = gt::value::zero::Unsigned;
 type::Real temperature = gt::value::zero::Real;

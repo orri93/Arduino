@@ -20,10 +20,6 @@ namespace retrieve {
 void initial();
 }
 
-namespace tune {
-void restore();
-}
-
 } // namespace eeprom
 } // namespace temperature
 } // namespace gos

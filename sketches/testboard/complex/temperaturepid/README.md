@@ -13,10 +13,9 @@
 
 #### Coils
 
-| Number | Address | Section | Variable | Description    |
-|-------:|--------:|---------|----------|----------------|
-|  00001 |  0x0000 | PID     | PonE     | The PID P on E |
-|  00002 |  0x0001 | PID     | Tune     | Tune with time |
+| Number | Address | Section | Variable | Description |
+|-------:|--------:|---------|----------|-------------|
+|  00001 |  0x0000 | Unused  | Unused   | Unused      |
 
 #### Discrete Input
 
@@ -49,6 +48,7 @@
 |  40015 |  0x000E |    1 | Unsigned | PID tune   | TimeTune | Time tune                 |
 |  40016 |  0x000F |    1 | Unsigned | Force      | Force    | Force mode                |
 
+
 ### EEPROM
 
 | Address | Size | Type     | Section    | Variable   | Description                      |
@@ -63,12 +63,24 @@
 | 0x0013  |    4 | Real     | Range      | Min sensor | The minimum range for the sensor |
 | 0x0015  |    4 | Real     | Range      | Max sensor | The maximum range for the sensor |
 
+
 ### Display
 
 | Line | Variable    | Description               |
 |-----:|-------------|---------------------------|
 |    1 | Temperature | The measured temperature  |
 |    2 |             | The last command line     |
+
+
+### Force
+
+| Value | Name      | Description     |
+|------:|-----------|-----------------|
+|     0 | None      | No Force        |
+|     1 | Idle      | Force Idle      |
+|     2 | Manual    | Force Manual    |
+|     3 | Automatic | Force Automatic |
+
 
 ### PID
 
@@ -84,6 +96,29 @@ HighByte is the PID time tune variable time unit
 |     2 | Seconds      | Time tuning are in s      |
 |     1 | Minutes      | Time tuning are in min    |
 
+
 ### Build
 
-`Build-Arduino -Board uno -CompilerCppExtraFlags -DMODBUS_HANDLER_INTERFACE`
+#### Build for MAX 6675
+
+`Build-Arduino -Board uno -CompilerCppExtraFlags "-DMODBUS_HANDLER_INTERFACE"`
+
+#### Build for MAX 6675 with internal reporting
+
+`Build-Arduino -Board uno -CompilerCppExtraFlags "-DMODBUS_HANDLER_INTERFACE -DGOS_TPID_INT_PID_INP_REG"`
+
+#### Build for MAX 31865
+
+`Build-Arduino -Board uno -CompilerCppExtraFlags "-DMODBUS_HANDLER_INTERFACE -DGOS_TEMPERATUREPID_SENSOR_MAX31865"`
+
+#### Build for MAX 31865 with internal reporting
+
+`Build-Arduino -Board uno -CompilerCppExtraFlags "-DMODBUS_HANDLER_INTERFACE -DGOS_TPID_INT_PID_INP_REG -DGOS_TEMPERATUREPID_SENSOR_MAX31865"`
+
+#### Build for DS18B20
+
+`Build-Arduino -Board uno -CompilerCppExtraFlags "-DMODBUS_HANDLER_INTERFACE -DGOS_TEMPERATUREPID_SENSOR_DS18B20"`
+
+#### Build for DS18B20 with internal reporting
+
+`Build-Arduino -Board uno -CompilerCppExtraFlags "-DMODBUS_HANDLER_INTERFACE -DGOS_TPID_INT_PID_INP_REG -DGOS_TEMPERATUREPID_SENSOR_DS18B20"`

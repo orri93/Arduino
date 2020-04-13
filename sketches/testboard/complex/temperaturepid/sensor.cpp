@@ -19,6 +19,7 @@ namespace temperature {
 namespace sensor {
 
 #if defined(GOS_TEMPERATUREPID_SENSOR_DS18B20)
+
 SensorDs18b20::SensorDs18b20() : onewire_(nullptr), dallas_(nullptr) {
 }
 
@@ -41,7 +42,36 @@ const char* SensorDs18b20::error(uint8_t& length) {
 
 SensorDs18b20 temperature;
 
+#elif defined(GOS_TEMPERATUREPID_SENSOR_MAX31865)
+
+SensorMax31865::SensorMax31865() :
+  max31865_(nullptr) {
+  TypedSensor::Code = 0;
+  TypedSensor::Value = 0.0;
+  TypedSensor::Last = gatl::sensor::Status::Undefined;
+}
+void SensorMax31865::begin() {
+  SPI.begin();
+  max31865_ = new ::gos::Max31865(PIN_MAX31865_CS);
+  max31865_->initialize(MAX31865_RTD_TYPE, MAX31865_WIRES);
+}
+gatl::sensor::Status SensorMax31865::measure() {
+  if (max31865_->read(TypedSensor::Value)) {
+    if ((!isnan(TypedSensor::Value)) && (!isinf(TypedSensor::Value))) {
+      return (TypedSensor::Last = check());
+    }
+  }
+  return TypedSensor::Last = gatl::sensor::Status::Fault;
+}
+
+const char* SensorMax31865::error(uint8_t& length) {
+  return max31865_->error(length);
+}
+
+SensorMax31865 temperature;
+
 #else
+
 SensorMax6675::SensorMax6675() :
   max6675_(nullptr) {
   TypedSensor::Code = 0;
@@ -69,6 +99,7 @@ const char* SensorMax6675::error(uint8_t& length) {
 }
 
 SensorMax6675 temperature;
+
 #endif
 
 gatl::sensor::Status read() {

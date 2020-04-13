@@ -2,8 +2,9 @@
 #define GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_MACRO_H_
 
 #define PIN_HEATER                           6
+#define PIN_MAX31865_CS                      7
 #define PIN_MAX6675_CS                       8
-#define PIN_DS18B20                          8
+#define PIN_DS18B20                          9
 
 #define PIN_RS485_MODBUS_RX                  0
 #define PIN_RS485_MODBUS_TX                  1
@@ -20,6 +21,12 @@
 
 #define PIN_BUTTON                          A0
 #define PIN_POTENTIOMETER                   A2
+
+/* For PT100 set type to 1 and for PT1000 set type to 2 */
+#define MAX31865_RTD_TYPE      RTD_TYPE_PT1000
+
+// set to 2WIRE or 4WIRE as necessary
+#define MAX31865_WIRES              RTD_3_WIRE
 
 #define MODBUS_BAUD                       9600
 
@@ -41,6 +48,6 @@
 #define ANALOG_MININUM                       0
 #define ANALOG_MAXIMUM                    1024
 
-#define DEFAULT_INTERVAL                  1000
+#define DEFAULT_INTERVAL                  2000
 
 #endif

@@ -50,7 +50,6 @@ void setup() {
   gt::pid::parameter.PonE = bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_PONE);
 #endif
   gt::pid::create();
-  gt::pid::tune::calculate();
   gt::pid::tune::time();
 
   gt::sensor::temperature.begin();
@@ -87,13 +86,13 @@ void loop() {
   if (gatl::tick::is::next<GATL_TICK_DEFAULT_TYPE, gt::type::Unsigned>(
       gtvi::next, gtvi::tick, gtvi::interval)) {
     switch (gtv::force) {
-    case GOT_PI_TUNE_TIME_FORCE_IDLE:
+    case GOT_PI_FORCE_IDLE:
       gtv::status = gt::type::Status::idle;
       break;
-    case GOT_PI_TUNE_TIME_FORCE_MANUAL:
+    case GOT_PI_FORCE_MANUAL:
       gtv::status = gt::type::Status::manual;
       break;
-    case GOT_PI_TUNE_TIME_FORCE_AUTO:
+    case GOT_PI_FORCE_AUTO:
       gtv::status = gt::type::Status::automatic;
       break;
     }
@@ -103,6 +102,7 @@ void loop() {
     gt::sensor::read();
     switch (gtv::status) {
     case gt::type::Status::manual:
+      gatl::pid::wiki::initialize(gt::pid::variable);
       gtv::output = gtv::controller::manual;
       break;
     case gt::type::Status::automatic:
@@ -110,23 +110,25 @@ void loop() {
       case gatl::sensor::Status::Operational:
       case gatl::sensor::Status::BelowRange:
       case gatl::sensor::Status::AboveRange:
-        gtv::output = gatl::pid::wiki::compute<
+        gtv::output = static_cast<gt::type::Unsigned>(gatl::pid::wiki::compute<
           gt::type::Real,
-          gt::type::Unsigned,
+          gt::type::Real,
           gt::type::Real,
           gt::type::Real>(
             gtv::temperature,
             gt::pid::variable,
             gt::pid::parameter,
-            gt::pid::tune::k);
+            gt::pid::tune::k));
         break;
       default:
+        gatl::pid::wiki::initialize(gt::pid::variable);
         gtv::output = 0;
         break;
       }
       break;
     case gt::type::Status::idle:
     default:
+      gatl::pid::wiki::initialize(gt::pid::variable);
       gtv::output = 0;
       break;
     }

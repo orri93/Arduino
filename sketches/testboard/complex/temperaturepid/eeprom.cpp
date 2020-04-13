@@ -34,17 +34,11 @@ void initial() {
   EEPROM.get<type::Unsigned>(GOS_TC_EEPROM_INDEX_MANUAL, gtvc::manual);
   GOS_T_IEV(GOS_TC_EEPROM_INDEX_SETPOINT, gtp::parameter.Setpoint);
   GOS_T_IEV(GOS_TC_EEPROM_INDEX_KP, gtp::parameter.Kp);
-  if (bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER)) {
-    GOS_T_IEV(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::t.Ti);
-    GOS_T_IEV(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::t.Td);
-  } else {
-    GOS_T_IEV(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::k.Ki);
-    GOS_T_IEV(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::k.Kd);
-  }
+  GOS_T_IEV(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::k.Ki);
+  GOS_T_IEV(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::k.Kd);
   GOS_T_IEV(GOS_TC_EEPROM_INDEX_MIN_SENS, gt::sensor::temperature.Range.lowest);
   GOS_T_IEV(GOS_TC_EEPROM_INDEX_MAX_SENS, gt::sensor::temperature.Range.highest);
   EEPROM.get<type::Unsigned>(GOS_TC_EEPROM_INDEX_TIME_TUNE, gtvptt::unit);
-
   if (gtvi::interval == 0) {
     gtvi::interval = gtval::defaultval::timing::Interval;
     EEPROM.put<type::Unsigned>(GOS_TC_EEPROM_INDEX_INTERVAL, gtvi::interval);
@@ -76,18 +70,6 @@ void initial() {
 }
 
 } // namespace retrieve
-
-namespace tune {
-void restore() {
-  if (bitRead(gtv::modbus::coils, GOS_TCV_COIL_BIT_TUNE_TIME_MASTER)) {
-    EEPROM.put<type::Real>(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::t.Ti);
-    EEPROM.put<type::Real>(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::t.Td);
-  } else {
-    EEPROM.put<type::Real>(GOS_TC_EEPROM_INDEX_KITI, gtp::tune::k.Ki);
-    EEPROM.put<type::Real>(GOS_TC_EEPROM_INDEX_KDTD, gtp::tune::k.Kd);
-  }
-}
-} // namespace tune
 
 } // namespace eeprom
 } // namespace temperature

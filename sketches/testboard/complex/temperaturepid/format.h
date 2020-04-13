@@ -21,8 +21,6 @@ extern Holder temperature;
 extern Holder kp;
 extern Holder ki;
 extern Holder kd;
-extern Holder ti;
-extern Holder td;
 extern Holder minsens;
 extern Holder maxsens;
 extern Holder tunetimeunit;

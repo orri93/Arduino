@@ -2,10 +2,6 @@
 #define GOS_ARDUINO_SKETCHES_TESTBOARD_COMPLEX_TEMPERATUREPID_TEXT_H_
 
 #define GOS_TCT              ""
-#define GOS_TCT_P_ON_E       "P on E"
-#define GOS_TCT_P_ON_E_NOT   "Not P on E"
-#define GOS_TCT_TUNE_T       "T Tune"
-#define GOS_TCT_TUNE_K       "K Tune"
 
 #define GOS_TCT_FAULT        "Fault"
 #define GOS_TCT_INTERVAL     "Int"
@@ -18,8 +14,6 @@
 #define GOS_TCT_KP           "KP"
 #define GOS_TCT_KI           "KI"
 #define GOS_TCT_KD           "KD"
-#define GOS_TCT_TI           "TI"
-#define GOS_TCT_TD           "TD"
 #define GOS_TCT_MIN_SENS     "MinS"
 #define GOS_TCT_MAX_SENS     "MaxS"
 #define GOS_TCT_TUNE_TIME    "TT"
