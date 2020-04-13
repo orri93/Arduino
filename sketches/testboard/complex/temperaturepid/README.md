@@ -32,6 +32,7 @@
 |  30004 |  0x0003 |    2 | Real     | PID         | Ti          | The Ki * time from the tuning   |
 |  30006 |  0x0005 |    2 | Real     | PID         | Td          | The Kd / time from the tuning   |
 |  30008 |  0x0007 |    2 | Real     | PID         | Output sum  | The internal output sum         |
+|  30010 |  0x0009 |    1 | Unsigned | Controller  | Status      | The Status                      |
 
 #### Holding Registry
 
@@ -70,6 +71,16 @@
 |-----:|-------------|---------------------------|
 |    1 | Temperature | The measured temperature  |
 |    2 |             | The last command line     |
+
+
+### Status
+
+| Value | Name      | Description |
+|------:|-----------|-------------|
+|     0 | Undefined | Undefined   |
+|     1 | Idle      | Idle        |
+|     2 | Manual    | Manual      |
+|     3 | Automatic | Automatic   |
 
 
 ### Force

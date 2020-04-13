@@ -50,4 +50,6 @@
 
 #define DEFAULT_INTERVAL                  2000
 
+#define DISPLAY_INTERVAL                   200
+
 #endif

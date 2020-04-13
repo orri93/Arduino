@@ -26,6 +26,7 @@
 #define GOS_TC_IRA_ERROR      0x0003
 #define GOS_TC_IRA_INTEGRAL   0x0005
 #define GOS_TC_IRA_DERIVATIVE 0x0007
+#define GOS_TC_IRA_STATUS     0x0009
 
 #define GOS_TC_HRA_INTERVAL   0x0000
 #define GOS_TC_HRA_MANUAL     0x0001
@@ -365,6 +366,31 @@ MODBUS_TYPE_RESULT gtm::Handler::ReadInputRegisters(
     result = MODBUS_STATUS_OK;
   }
 #endif
+  if (location = gatl::modbus::provide::buffer::location<MODBUS_TYPE_DEFAULT>(
+    gtm::variable,
+    gtm::buffer::request,
+    gtm::buffer::response,
+    GOS_TC_IRA_STATUS,
+    1,
+    address,
+    length)) {
+    switch (gt::variables::status) {
+    case gt::type::Status::undefined:
+      MODBUS_WRITE_UINT16_AT0(location, 0x00);
+      break;
+    case gt::type::Status::idle:
+      MODBUS_WRITE_UINT16_AT0(location, 0x01);
+      break;
+    case gt::type::Status::manual:
+      MODBUS_WRITE_UINT16_AT0(location, 0x02);
+      break;
+    case gt::type::Status::automatic:
+      MODBUS_WRITE_UINT16_AT0(location, 0x03);
+      break;
+    }
+    
+    result = MODBUS_STATUS_OK;
+  }
   digitalWrite(PIN_LED_MODBUS_READ, LOW);
   return result;
 }
