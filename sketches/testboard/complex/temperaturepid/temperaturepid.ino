@@ -30,6 +30,10 @@ namespace gtv = ::gos::temperature::variables;
 namespace gtvi = ::gos::temperature::variables::timing;
 namespace gtfdb = ::gos::temperature::format::display::buffer;
 
+typedef gatl::Tick<GATL_TICK_DEFAULT_TYPE, GATL_TICK_DEFAULT_TYPE> Tick;
+
+Tick displaytick(DISPLAY_INTERVAL);
+
 void setup() {
 #ifndef NO_DISPLAY
   gt::display::oled.U8g2->begin();
@@ -133,15 +137,17 @@ void loop() {
       break;
     }
     analogWrite(PIN_HEATER, gtv::output);
-#ifndef NO_DISPLAY
-    gt::display::two.display(gtfdb::first, gtfdb::second);
-#endif
+
    if(gtv::status == gt::type::Status::automatic) {
       digitalWrite(PIN_LED_BLUE, LOW);
    }
   }
 
 #ifndef NO_DISPLAY
+  if (displaytick.is(gtvi::tick)) {
+    gt::sensor::report();
+    gt::display::two.display(gtfdb::first, gtfdb::second);
+  }
   gt::display::two.loop();
 #endif
 }

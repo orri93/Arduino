@@ -7,7 +7,7 @@
 
 #ifndef DEFAULT_SERIAL_PORT
 #ifdef WIN32
-#define DEFAULT_SERIAL_PORT "COM11"
+#define DEFAULT_SERIAL_PORT "COM32"
 #else
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 #endif

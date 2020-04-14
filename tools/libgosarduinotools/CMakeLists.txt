@@ -3,6 +3,7 @@ list(APPEND libgosarduinotools_source
   "options.cpp"
   "setting.cpp"
   "default.cpp"
+  "serial.cpp"
   "types.cpp"
   "text.cpp")
 
@@ -16,8 +17,8 @@ if(CLANG_TIDY_EXE)
 endif()
 
 if (libgosarduinotools_include)
-target_include_directories(${libgosarduinotools_target} PUBLIC
-  ${libgosarduinotools_include})
+  target_include_directories(${libgosarduinotools_target} PUBLIC
+    ${libgosarduinotools_include})
 endif ()
 
 if (libgosarduinotools_public_header)

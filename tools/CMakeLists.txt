@@ -1,3 +1,5 @@
+set(gos_arduino_pid_master_library_target libpidmaster)
+
 list(APPEND gos_arduino_tool_modbus_include
   ${libgosarduinotools_include})
 

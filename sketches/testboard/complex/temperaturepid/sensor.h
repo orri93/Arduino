@@ -48,7 +48,7 @@ extern SensorMax31865 temperature;
 
 #else
 
-class SensorMax31865 : public TypedSensor {
+class SensorMax6675 : public TypedSensor {
 public:
   SensorMax6675();
   void begin();
@@ -62,6 +62,7 @@ extern SensorMax6675 temperature;
 #endif
 
 ::gos::atl::sensor::Status read();
+void report();
 
 namespace error {
 extern const char* message;

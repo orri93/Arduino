@@ -114,6 +114,10 @@ gatl::sensor::Status read() {
     gtv::temperature = 0.0;
     break;
   }
+  return temperature.Last;
+}
+
+void report() {
 #ifndef NO_DISPLAY
   switch (temperature.Last) {
   case gatl::sensor::Status::Operational:
@@ -158,7 +162,6 @@ gatl::sensor::Status read() {
     break;
   }
 #endif
-  return temperature.Last;
 }
 
 namespace error {

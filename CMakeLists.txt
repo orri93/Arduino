@@ -108,6 +108,9 @@ if (GOS_ARDUINO_TOOLS)
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/default.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/types.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/text.h")
+  list(APPEND gos_arduino_pid_master_library_public_header
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/pid/modbus/master.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/pid/modbus/types.h")
 endif ()
 
 if (GOS_PID_TOOLKIT)

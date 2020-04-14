@@ -3,6 +3,8 @@
 
 #define GOS_TCT              ""
 
+#define GOS_TCT_SPACES       "       "
+
 #define GOS_TCT_FAULT        "Fault"
 #define GOS_TCT_INTERVAL     "Int"
 #define GOS_TCT_MANUAL       "Man"

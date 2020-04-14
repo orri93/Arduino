@@ -143,29 +143,6 @@ ColumnLayout {
     }
 
     ColumnLayout {
-      id: tiColumn
-      Layout.fillWidth: true
-      Layout.column: 1
-      Layout.row: 3
-      Label {
-        text: qsTr("Ti")
-      }
-      RealSpinBox {
-        id: tiInput
-        Layout.fillWidth: true
-        onValueChanged: {
-          orchestration.ti = value / 1000;
-        }
-      }
-      Connections {
-        target: orchestration
-        onSetpointChanged: {
-          tiInput.value = 1000 * orchestration.ti;
-        }
-      }
-    }
-
-    ColumnLayout {
       id: kdColumn
       Layout.fillWidth: true
       Layout.column: 0
@@ -184,29 +161,6 @@ ColumnLayout {
         target: orchestration
         onSetpointChanged: {
           kdInput.value = 1000 * orchestration.kd;
-        }
-      }
-    }
-
-    ColumnLayout {
-      id: tdColumn
-      Layout.fillWidth: true
-      Layout.column: 1
-      Layout.row: 4
-      Label {
-        text: qsTr("Td")
-      }
-      RealSpinBox {
-        id: tdInput
-        Layout.fillWidth: true
-        onValueChanged: {
-          orchestration.td = value / 1000;
-        }
-      }
-      Connections {
-        target: orchestration
-        onSetpointChanged: {
-          tdInput.value = 1000 * orchestration.td;
         }
       }
     }

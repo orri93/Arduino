@@ -9,6 +9,7 @@
 | Unsigned | 16 bits | uint16_t | General 16 bit unsigned integer number |
 | Real     | 32 bits | float    | General 32 bit floating point number   |
 
+
 ### Modbus
 
 #### Coils
@@ -29,9 +30,9 @@
 |-------:|--------:|-----:|----------|-------------|-------------|---------------------------------|
 |  30001 |  0x0000 |    1 | Unsigned | Controller  | Output      | The Manual or Controller output |
 |  30002 |  0x0001 |    2 | Real     | Measurement | Temperature | The Measured Temperature in °C  |
-|  30004 |  0x0003 |    2 | Real     | PID         | Ti          | The Ki * time from the tuning   |
-|  30006 |  0x0005 |    2 | Real     | PID         | Td          | The Kd / time from the tuning   |
-|  30008 |  0x0007 |    2 | Real     | PID         | Output sum  | The internal output sum         |
+|  30004 |  0x0003 |    2 | Real     | PID         | Error       | The internal error              |
+|  30006 |  0x0005 |    2 | Real     | PID         | Integral    | The internal integral           |
+|  30008 |  0x0007 |    2 | Real     | PID         | Derivative  | The internal derivative         |
 |  30010 |  0x0009 |    1 | Unsigned | Controller  | Status      | The Status                      |
 
 #### Holding Registry

@@ -24,6 +24,11 @@ if (gos_arduino_tool_modbus_libraries)
     ${gos_arduino_tool_modbus_libraries})
 endif ()
 
+if (gos_arduino_pid_master_library_target)
+  list(APPEND gos_arduino_tool_modbus_master_libraries
+    ${gos_arduino_pid_master_library_target})
+endif ()
+
 add_executable(${gos_arduino_tool_modbus_master_target}
   ${gos_arduino_tool_modbus_master_source})
 
