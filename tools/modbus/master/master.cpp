@@ -179,9 +179,9 @@ int main(int argc, char* argv[]) {
     }
 
     if (
-      varmap.count(GOS_ARDT_MOD_KP) &&
-      varmap.count(GOS_ARDT_MOD_KI) &&
-      varmap.count(GOS_ARDT_MOD_KD)) {
+      varmap.count(GOS_ARDT_MOD_KP) > 0 &&
+      varmap.count(GOS_ARDT_MOD_KI) > 0 &&
+      varmap.count(GOS_ARDT_MOD_KD) > 0) {
       result = gatpm::master::write::tuning(
         varmap[GOS_ARDT_MOD_KP].as<gatp::types::Real>(),
         varmap[GOS_ARDT_MOD_KI].as<gatp::types::Real>(),
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
         goto gos_arduino_tools_pid_modbus_master_exit_failure;
       }
     } else {
-      if (varmap.count(GOS_ARDT_MOD_KP)) {
+      if (varmap.count(GOS_ARDT_MOD_KP) > 0) {
         result = gatpm::master::write::kp(
           varmap[GOS_ARDT_MOD_KP].as<gatp::types::Real>());
         if (result != gatpm::types::result::success) {
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
           goto gos_arduino_tools_pid_modbus_master_exit_failure;
         }
       }
-      if (varmap.count(GOS_ARDT_MOD_KI)) {
+      if (varmap.count(GOS_ARDT_MOD_KI) > 0) {
         result = gatpm::master::write::ki(
           varmap[GOS_ARDT_MOD_KI].as<gatp::types::Real>());
         if (result != gatpm::types::result::success) {
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
           goto gos_arduino_tools_pid_modbus_master_exit_failure;
         }
       }
-      if (varmap.count(GOS_ARDT_MOD_KD)) {
+      if (varmap.count(GOS_ARDT_MOD_KD) > 0) {
         result = gatpm::master::write::kd(
           varmap[GOS_ARDT_MOD_KD].as<gatp::types::Real>());
         if (result != gatpm::types::result::success) {
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (varmap.count(GOS_ARDT_MOD_MANUAL)) {
+    if (varmap.count(GOS_ARDT_MOD_MANUAL) > 0) {
       result = gatpm::master::write::manual(
         varmap[GOS_ARDT_MOD_MANUAL].as<gatp::types::Unsigned>());
       if (result != gatpm::types::result::success) {
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (varmap.count(GOS_ARDT_MOD_SETPOINT)) {
+    if (varmap.count(GOS_ARDT_MOD_SETPOINT) > 0) {
       result = gatpm::master::write::setpoint(
         varmap[GOS_ARDT_MOD_SETPOINT].as<gatp::types::Real>());
       if (result != gatpm::types::result::success) {
@@ -235,12 +235,12 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (varmap.count(GOS_ARDT_MOD_FINAL)) {
+    if (varmap.count(GOS_ARDT_MOD_FINAL) > 0) {
       final = static_cast<int>(
         varmap[GOS_ARDT_MOD_FINAL].as<gatp::types::Unsigned>());
     }
 
-    if (varmap.count(GOS_ARDT_MOD_FORCE)) {
+    if (varmap.count(GOS_ARDT_MOD_FORCE) > 0) {
       result = gatpm::master::write::force(
         varmap[GOS_ARDT_MOD_FORCE].as<gatp::types::Unsigned>());
       if (result != gatpm::types::result::success) {
