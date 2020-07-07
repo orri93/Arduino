@@ -45,12 +45,17 @@ set(gos_arduino_unit_testing_sublibraries_dir
 set(gos_arduino_unit_testing_sublibraries_gatl_dir
   "${gos_arduino_unit_testing_sublibraries_dir}/arduinotemplates/src")
 
+set(gos_arduino_unit_testing_googlemock_include_dir
+  "${gos_arduino_unit_testing_dir}/extern/googletest/googlemock/include")
+set(gos_arduino_unit_testing_googletest_include_dir
+  "${gos_arduino_unit_testing_dir}/extern/googletest/googletest/include")
+
 list(APPEND gos_arduino_sketches_unit_testing_mock_include 
   "${gos_arduino_unit_testing_dir}/include"
   "${gos_arduino_unit_testing_dir}/include/mock"
   "${gos_arduino_unit_testing_dir}/extern/arduinomock"
-  "${gos_arduino_unit_testing_dir}/extern/googletest/googlemock/include"
-  "${gos_arduino_unit_testing_dir}/extern/googletest/googletest/include")
+  "${gos_arduino_unit_testing_googlemock_include_dir}"
+  "${gos_arduino_unit_testing_googletest_include_dir}")
 
 list(APPEND gos_arduino_sketches_unit_testing_include
   ${gos_arduino_sketches_dir}
@@ -86,6 +91,8 @@ endif ()
 if (GOS_ARDUINO_TOOLS)
   set(gos_build_dependency_boost ON)
   set(libgosarduinotools_target libgosarduinotools)
+  set(gos_arduino_pid_master_library_target libpidmaster)
+  set(gos_arduino_pid_tuning_library_target libpidtuning)
   list(APPEND gos_arduino_boost_package
     program_options
     log_setup
@@ -102,12 +109,16 @@ if (GOS_ARDUINO_TOOLS)
   list(APPEND libgosarduinotools_include
      ${gos_arduino_include_dir})
   list(APPEND libgosarduinotools_public_header
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/utilities.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/exception.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/options.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/setting.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/default.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/types.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/text.h")
+  list(APPEND gos_arduino_pid_tuning_library_public_header
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/pid/tuning/blackbox.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/pid/tuning/types.h")
   list(APPEND gos_arduino_pid_master_library_public_header
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/pid/modbus/master.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/gos/arduino/tools/pid/modbus/types.h")

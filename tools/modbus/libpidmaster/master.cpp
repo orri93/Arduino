@@ -319,6 +319,28 @@ gatpm::types::result kd(const gatp::types::Real& kd) {
     return gatpm::types::result::uninitialized;
   }
 }
+
+gatpm::types::result tuning(
+  const gatp::types::Real& kp,
+  const gatp::types::Real& ki) {
+  if (details::_modbus) {
+    GOS_ARDT_SET_FL(kp, details::_holding + GOS_TC_HRA_KP);
+    GOS_ARDT_SET_FL(ki, details::_holding + GOS_TC_HRA_I);
+    int result = ::modbus_write_registers(
+      details::_modbus,
+      GOS_TC_HRA_KP,
+      4,
+      details::_holding + GOS_TC_HRA_KP);
+    if (result > 0) {
+      return gatpm::types::result::success;
+    } else {
+      return gatpm::types::result::failure;
+    }
+  } else {
+    return gatpm::types::result::uninitialized;
+  }
+}
+
 gatpm::types::result tuning(
   const gatp::types::Real& kp,
   const gatp::types::Real& ki,

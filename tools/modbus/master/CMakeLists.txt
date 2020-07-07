@@ -6,6 +6,7 @@ list(APPEND gos_arduino_tool_modbus_master_source master.cpp)
 list(APPEND gos_arduino_tool_modbus_master_include
   ${extern_libmodbus_include})
 list(APPEND gos_arduino_tool_modbus_master_libraries
+  ${gos_arduino_pid_tuning_library_target}
   ${extern_libmodbus}
   ws2_32)
 
@@ -31,6 +32,9 @@ endif ()
 
 add_executable(${gos_arduino_tool_modbus_master_target}
   ${gos_arduino_tool_modbus_master_source})
+
+target_compile_definitions(${gos_arduino_tool_modbus_master_target} PUBLIC
+  NOMINMAX)
 
 if (gos_arduino_tool_modbus_master_definitions)
   target_compile_definitions(${gos_arduino_tool_modbus_master_target} PUBLIC

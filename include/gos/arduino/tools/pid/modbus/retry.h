@@ -1,19 +1,7 @@
-#ifndef GOS_ARDUINO_TOOL_PID_MODBUS_MASTER_H_
-#define GOS_ARDUINO_TOOL_PID_MODBUS_MASTER_H_
+#ifndef GOS_ARDUINO_TOOL_PID_MODBUS_MASTER_RETRY_H_
+#define GOS_ARDUINO_TOOL_PID_MODBUS_MASTER_RETRY_H_
 
-#define GOT_PI_FORCE_OFF                    0
-#define GOT_PI_FORCE_IDLE                   1
-#define GOT_PI_FORCE_MANUAL                 2
-#define GOT_PI_FORCE_AUTO                   3
-#define GOT_PI_FORCE_MAXIMUM                3
-
-#include <cerrno>
-
-#include <string>
-
-#include <gos/arduino/tools/pid/types.h>
-
-#include <gos/arduino/tools/pid/modbus/types.h>
+#include <gos/arduino/tools/pid/modbus/master.h>
 
 namespace gos {
 namespace arduino {
@@ -21,27 +9,11 @@ namespace tools {
 namespace pid {
 namespace modbus {
 namespace master {
+namespace retry {
 
-namespace report {
-namespace error {
-errno_t errorno();
-std::string last();
-} // namespace error
-} // namespace report
-
-::gos::arduino::tools::pid::modbus::types::result initialize(
-  const char* device,
-  const int& baud,
-  const int& slaveid,
-  const char& parity = 'N',
-  const int& data_bit = 8,
-  const int& stop_bit = 1);
+void set(const int& retry);
 
 ::gos::arduino::tools::pid::modbus::types::result connect();
-
-::gos::arduino::tools::pid::modbus::types::result disconnect();
-
-::gos::arduino::tools::pid::modbus::types::result shutdown();
 
 namespace read {
 ::gos::arduino::tools::pid::modbus::types::result input(
@@ -80,6 +52,7 @@ namespace write {
   const ::gos::arduino::tools::pid::types::Unsigned& force);
 } // namespace write
 
+} // namespace retry
 } // namespace master
 } // namespace modbus
 } // namespace pid

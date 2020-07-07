@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include <chrono>
 #include <string>
 #include <utility>
 
@@ -35,6 +36,18 @@ endpoint make_endpoint(const ::std::string& address, const uint16_t& port);
 
 bool iszero(const endpoint& endpoint);
 bool isempty(const endpoint& endpoint);
+
+template<typename T> struct range {
+  T lowest;
+  T highest;
+};
+
+template<typename T> range<T> make_range(const T& lowest, const T& highest) {
+  range<T> range;
+  range.lowest = lowest;
+  range.highest = highest;
+  return range;
+}
 
 } // namespace types
 } // namespace tools
