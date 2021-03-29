@@ -1,7 +1,7 @@
 #include <gatldht.h>
 #include <gatltick.h>
 
-#define DHT11_PIN              2
+#define DHT11_PIN             D1
 
 #define DHT11_INO_BUFFER_SIZE 64
 

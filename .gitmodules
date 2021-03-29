@@ -103,3 +103,9 @@
 [submodule "extern/pidtoolkit"]
 	path = extern/pidtoolkit
 	url = git@github.com:orri93/pidtoolkit.git
+[submodule "libraries/PubSubClient"]
+	path = libraries/PubSubClient
+	url = https://github.com/knolleary/pubsubclient.git
+[submodule "examples/arduino-firmware-wifilink"]
+	path = examples/arduino-firmware-wifilink
+	url = https://github.com/jandrassy/arduino-firmware-wifilink.git
